@@ -1,0 +1,33 @@
+name: checkin
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron:  0 16 * * * 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install node
+      run: |
+        sudo apt update && \
+        sudo apt install node
+      
+    - name: requirements
+      run: |
+       npm i
+        
+    - name: Checkin
+      run: |
+        node index.js
+      env: 
+        SERVE: ${{ secrets.SERVE }}
+        SCKEY: ${{ secrets.SCKEY }}
+        COOKIE: ${{ secrets.COOKIE }}
