@@ -1,26 +1,62 @@
-
-name: checkin
-
+# 工作流名称
+name: CI
+ 
+# 限定工作流执行的条件
+# 触发条件 branches限定分支
+# push推送到master动作,pull_request是合并到master动作
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  schedule:
-    - cron:  0 16 * * * 
-    
+ 
+# 一个工作流的根节点jobs,以下可以定义多个job
 jobs:
-  build:
-    #指定运行环境为最新的Ubuntu版本
-    runs-on: ubuntu-latest 
-    steps:
-    - uses: actions/checkout@v2
-      #使用action安装node环境
-    - name: Use Node.js 15.9.0
-      uses: actions/setup-node@v1
-      with:
-        node-version: 15.9.0
-    - run: npm install 
-#安装项目依赖
-    - run: node index 
-#build项目
+  # 定义一个名为 build 的job
+  build:
+    # CI 或 job执行的环境
+    runs-on: ubuntu-latest
+ 
+    # job中每一步的任务序列
+    steps:
+ 
+      # Job Start
+    - name: Job Start
+      run: echo Hello, GitHub workflows !
+ 
+    # 检出你在当前github工作空间的项目
+    - uses: actions/checkout@v2
+ 
+    # 执行一个一系列或多行的shell命令
+    # - name: Run a multi-line script
+    #   run: |
+    #     echo Add other actions to build,
+    #     echo test, and deploy your project.
+ 
+    # 设置Node环境 actions/setup-node@v1 是GitHub Marketplace其中的一个,相当于一个方法
+    # 使用一个Actions 使用uses关键字,  with表明参数
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+ 
+    # 使用多路径的缓存帮助构建
+    - name: Cache multiple paths
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/cache
+          !~/cache/exclude
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+ 
+    # 安装项目依赖
+    - name: Install Dependencies
+      run: npm install
+ 
+
+ 
+    # 编译项目到静态文件
+    - name: Build Static
+      run: node index
+ 
