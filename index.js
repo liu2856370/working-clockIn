@@ -16,7 +16,6 @@ app.listen(8088, () => {
 console.log(getIp());
 
 const main = async () => {
-  return;
   const browser = await puppeteer.launch({
     //启动
     headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
@@ -59,7 +58,7 @@ const main = async () => {
     };
     reloadTimer = setInterval(() => {
       page.reload();
-    }, 60000);
+    }, 120000);
     page.on("response", (response) => {
       if (
         response._url.includes(
@@ -93,7 +92,7 @@ const main = async () => {
         response.json().then((res) => {
           console.log(res);
           // 如果没有签到，每30秒发送一次提醒
-          if (res.beginDate) {
+          if (!res.beginDate) {
             if (!global.checkInJob) {
               global.checkInJob = schedule.scheduleJob(
                 "03 48 9 * * *",
@@ -138,8 +137,7 @@ const init = async () => {
   } else {
     // 工作日自动打卡
     // 每天9:48分自动打卡
-
-    main();
+    schedule.scheduleJob("03 30 9 * * *", main);
   }
 };
 init();
@@ -147,4 +145,3 @@ app.get("/confirmCheck", (req, res) => {
   res.send("已确认打卡，将继续执行打卡脚本！");
   main();
 });
-console.log(app);
