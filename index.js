@@ -1,8 +1,8 @@
 const puppeteer = require("puppeteer");
-// var axios = require("axios");
+var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
-var getIp = require("./utils/getIp.js");
+// var getIp = require("./utils/getIp.js");
 var checkInTime = null; // 签到时间
 global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
@@ -13,7 +13,7 @@ var expectCheckOutTime = null; // 预计签退时间
 // app.listen(8088, () => {
 //   console.log("服务启动");
 // });
-console.log(getIp());
+// console.log(getIp());
 
 const main = async () => {
   const browser = await puppeteer.launch({
@@ -132,7 +132,7 @@ const init = async () => {
   if (todayInfo.data.holiday) {
     await send({
       title: "节假日确认打卡",
-      content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://testcheckout.cn.utools.club/confirmCheck">点击链接继续打卡</a>`,
+      content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
     // 工作日自动打卡
