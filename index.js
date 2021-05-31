@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
 var axios = require("axios");
 
 // (async () => {
@@ -11,9 +11,6 @@ var axios = require("axios");
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
-
-    executablePath:
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", //Chrome路径, 可以右键Chrome->属性->目标
     headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
