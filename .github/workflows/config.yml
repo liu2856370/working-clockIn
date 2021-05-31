@@ -1,62 +1,118 @@
-# 工作流名称
-name: CI
- 
-# 限定工作流执行的条件
-# 触发条件 branches限定分支
-# push推送到master动作,pull_request是合并到master动作
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
- 
-# 一个工作流的根节点jobs,以下可以定义多个job
-jobs:
-  # 定义一个名为 build 的job
-  build:
-    # CI 或 job执行的环境
-    runs-on: ubuntu-latest
- 
-    # job中每一步的任务序列
-    steps:
- 
-      # Job Start
-    - name: Job Start
-      run: echo Hello, GitHub workflows !
- 
-    # 检出你在当前github工作空间的项目
-    - uses: actions/checkout@v2
- 
-    # 执行一个一系列或多行的shell命令
-    # - name: Run a multi-line script
-    #   run: |
-    #     echo Add other actions to build,
-    #     echo test, and deploy your project.
- 
-    # 设置Node环境 actions/setup-node@v1 是GitHub Marketplace其中的一个,相当于一个方法
-    # 使用一个Actions 使用uses关键字,  with表明参数
-    - name: Setup Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '14.1.0'
- 
-    # 使用多路径的缓存帮助构建
-    - name: Cache multiple paths
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/cache
-          !~/cache/exclude
-          **/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
- 
-    # 安装项目依赖
-    - name: Install Dependencies
-      run: npm install
- 
+language: node_js
+services: xvfb
 
- 
-    # 编译项目到静态文件
-    - name: Build Static
-      run: node index
- 
+# Throughout this file, the following `node_js` versions are being used:
+#
+# - node_js: '10' # The maintenance LTS version.
+# - node_js: '12' # The oldest major active LTS version.
+# - node_js: '14' # The newest major active LTS version.
+
+jobs:
+  include:
+    - os: 'osx'
+      name: 'Unit tests: macOS/Chromium'
+      node_js: '10' # The maintenance LTS version.
+      osx_image: xcode11.4
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - ls .local-chromium .local-firefox
+        - npm run tsc
+        - npm run unit
+
+    - os: 'windows'
+      name: 'Unit tests: Windows/Chromium'
+      node_js: '10' # The maintenance LTS version.
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - ls .local-chromium .local-firefox
+        - npm run tsc
+        - travis_retry npm run unit
+
+    # Node <10.17's fs.promises module was experimental and doesn't behave as
+    # expected. This problem was fixed in Node 10.19, but we run the unit tests
+    # through on 10.15 to make sure we don't cause any regressions when using
+    # fs.promises. See https://github.com/puppeteer/puppeteer/issues/6548 for an
+    # example.
+    - node_js: '10.15.0'
+      name: 'Node 10.15 Unit tests: Linux/Chromium'
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - npm run unit
+
+    - node_js: '10' # The maintenance LTS version.
+      name: 'Unit tests [with coverage]: Linux/Chromium'
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - travis_retry npm run unit-with-coverage
+        - npm run assert-unit-coverage
+
+    - node_js: '12' # The oldest major active LTS version.
+      name: 'Unit tests [Node 12]: Linux/Chromium'
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - npm run unit
+
+    - node_js: '14' # The newest major active LTS version.
+      name: 'Unit tests [Node 14]: Linux/Chromium'
+      env:
+        - CHROMIUM=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - npm run unit
+
+    - node_js: '12' # The oldest major active LTS version.
+      name: 'Browser tests: Linux/Chromium'
+      addons:
+        chrome: stable
+      env:
+        - CHROMIUM=true
+      script:
+        - npm run test-browser
+
+    # This bot runs all the extra checks that aren't the main Puppeteer unit tests.
+    - node_js: '10' # The maintenance LTS version.
+      name: 'Extra tests: Linux/Chromium'
+      env:
+        - CHROMIUM=true
+      script:
+        - npm run lint
+        # Ensure that we can generate the new docs without erroring
+        - npm run generate-docs
+        - npm run ensure-correct-devtools-protocol-revision
+
+    # This bot runs separately as it changes package.json to test puppeteer-core
+    # and we don't want that leaking into other bots and causing issues.
+    - node_js: '10' # The maintenance LTS version.
+      name: 'Test bundling and install of packages'
+      env:
+        - CHROMIUM=true
+      script:
+        - npm run test-install
+
+    - node_js: '10' # The maintenance LTS version.
+      name: 'Unit tests: Linux/Firefox'
+      env:
+        - FIREFOX=true
+      before_install:
+        - PUPPETEER_PRODUCT=firefox npm install
+      script:
+        - npm run funit
+
+notifications:
+  email: false
