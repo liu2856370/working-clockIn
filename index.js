@@ -8,11 +8,11 @@ global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
 global.checkInJob = null; // 定时签到任务
 var expectCheckOutTime = null; // 预计签退时间
-// const express = require("express");
-// const app = express();
-// app.listen(8088, () => {
-//   console.log("服务启动");
-// });
+const express = require("express");
+const app = express();
+app.listen(8088, () => {
+  console.log("服务启动");
+});
 console.log(getIp());
 
 // const main = async () => {
@@ -141,7 +141,7 @@ console.log(getIp());
 //   }
 // };
 // init();
-// app.get("/confirmCheck", (req, res) => {
-//   res.send("已确认打卡，将继续执行打卡脚本！");
-//   main();
-// });
+app.get("/confirmCheck", (req, res) => {
+  res.send("已确认打卡，将继续执行打卡脚本！");
+  main();
+});
