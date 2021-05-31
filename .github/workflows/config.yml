@@ -1,33 +1,26 @@
-name: checkin
 
+name: Node.js CI
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  schedule:
-    - cron:  0 16 * * * 
-
+  push:
+    branches: [ master ] #监听master分支的push事件
+  pull_request:
+    branches: [ master ]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Install node
-      run: |
-        sudo apt update && \
-        sudo apt install node
-      
-    - name: requirements
-      run: |
-       npm i
-        
-    - name: Checkin
-      run: |
-        node index.js
-      env: 
-        SERVE: ${{ secrets.SERVE }}
-        SCKEY: ${{ secrets.SCKEY }}
-        COOKIE: ${{ secrets.COOKIE }}
+  build:
+    #指定运行环境为最新的Ubuntu版本
+    runs-on: ubuntu-latest 
+    strategy:
+      matrix:
+        #指定node版本
+        node-version: [15.9.0] 
+    steps:
+    - uses: actions/checkout@v2
+      #使用action安装node环境
+    - name: Use Node.js ${{ matrix.node-version }} 
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install 
+#安装项目依赖
+    - run: node index 
+#build项目
