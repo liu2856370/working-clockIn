@@ -8,12 +8,6 @@ global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
 global.checkInJob = null; // 定时签到任务
 var expectCheckOutTime = null; // 预计签退时间
-// const express = require("express");
-// const app = express();
-// app.listen(8088, () => {
-//   console.log("服务启动");
-// });
-// console.log(getIp());
 
 const main = async () => {
   const browser = await puppeteer.launch({
@@ -26,7 +20,6 @@ const main = async () => {
     await page.goto("https://www.eteams.cn/attend", {
       waitUntil: "domcontentloaded",
     }); //页面跳转, 第二个参数为可选options, 这里表示等待页面结构加载完成, 无需等待img等资源
-    console.log("登录页加载成功!"); //控制台输出一下进度
     // 登陆
     await page.evaluate(() => {
       document.querySelector("#username").value = "15557881220"; //用户名input
@@ -54,7 +47,7 @@ const main = async () => {
           $(".j_check_inOrOut").click();
         }
       });
-      // await browser.close(); //关闭浏览器结束
+      await browser.close(); //关闭浏览器结束
     };
     reloadTimer = setInterval(() => {
       page.reload();
@@ -106,11 +99,22 @@ const main = async () => {
               });
             }, 30000);
           } else {
+            send({
+              title: "签到提醒！！！",
+              content: `<h3 style="color:red">已签到</h3><p>签到时间为${new Date(
+                res.beginDate
+              )}</p>`,
+            });
+            checkInTime = res.beginDate;
+            expectCheckOutTime = new Date(
+              checkInTime + parseInt((Math.random() * -1 + 9.5) * 3600000)
+            );
             clearInterval(global.remindTimer);
             global.remindTimer = null;
             clearInterval(global.reloadTimer);
             global.reloadTimer = null;
             global.checkInJob = null;
+            schedule.scheduleJob(expectCheckOutTime, main);
           }
         });
       }
@@ -138,6 +142,7 @@ const init = async () => {
     // 工作日自动打卡
     // 每天9:48分自动打卡
     schedule.scheduleJob("03 30 9 * * *", main);
+    main();
   }
 };
 init();
