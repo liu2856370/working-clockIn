@@ -1,7 +1,8 @@
 var axios = require("axios");
+var { PUSH_PLUS_TOKEN } = require("../config.js");
 const send = async ({ title, content }) => {
   await axios.post("http://pushplus.hxtrip.com/send", {
-    token: "fbb19de6491e4448859597359f3449e0 ",
+    token: PUSH_PLUS_TOKEN,
     title,
     content,
   });
