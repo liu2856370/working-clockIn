@@ -2,17 +2,16 @@ const puppeteer = require("puppeteer");
 var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
-// var getIp = require("./utils/getIp.js");
-var checkInTime = null; // 签到时间
+global.checkInTime = null; // 签到时间
 global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
 global.checkInJob = null; // 定时签到任务
-var expectCheckOutTime = null; // 预计签退时间
+global.expectCheckOutTime = null; // 预计签退时间
 
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
-    headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
+    headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
@@ -64,11 +63,12 @@ const main = async () => {
               title: "签到成功",
               content: `<h3 style="color:red">当前状态：未签退</h3>`,
             });
-            checkInTime = +new Date();
-            expectCheckOutTime = new Date(
-              checkInTime + parseInt((Math.random() * -1 + 9.5) * 3600000)
+            global.checkInTime = +new Date();
+            global.expectCheckOutTime = new Date(
+              global.checkInTime +
+                parseInt((Math.random() * -1 + 9.5) * 3600000)
             );
-            schedule.scheduleJob(expectCheckOutTime, main);
+            schedule.scheduleJob(global.expectCheckOutTime, main);
           }
           if (res.checkMap.message.includes("签退成功")) {
             send({
@@ -105,16 +105,17 @@ const main = async () => {
                 res.beginDate
               )}</p>`,
             });
-            checkInTime = res.beginDate;
-            expectCheckOutTime = new Date(
-              checkInTime + parseInt((Math.random() * -1 + 9.5) * 3600000)
+            global.checkInTime = res.beginDate;
+            global.expectCheckOutTime = new Date(
+              global.checkInTime +
+                parseInt((Math.random() * -1 + 9.5) * 3600000)
             );
             clearInterval(global.remindTimer);
             global.remindTimer = null;
             clearInterval(global.reloadTimer);
             global.reloadTimer = null;
             global.checkInJob = null;
-            schedule.scheduleJob(expectCheckOutTime, main);
+            schedule.scheduleJob(global.expectCheckOutTime, main);
           }
         });
       }
@@ -146,7 +147,3 @@ const init = async () => {
   }
 };
 init();
-// app.get("/confirmCheck", (req, res) => {
-//   res.send("已确认打卡，将继续执行打卡脚本！");
-//   main();
-// });
