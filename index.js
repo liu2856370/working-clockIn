@@ -7,15 +7,11 @@ global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
 global.checkInJob = null; // 定时签到任务
 global.expectCheckOutTime = null; // 预计签退时间
-const express = require("express");
-const app = express();
-app.listen(8088, () => {
-  console.log("服务启动");
-});
+
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
-    headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
+    headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
@@ -33,7 +29,6 @@ const main = async () => {
     await page.waitForSelector(".j_check_inOrOut");
 
     const clockIn = async () => {
-      console.log(1273891278937219873981);
       await page.evaluate(async () => {
         console.log("进入打卡函数");
         const today = moment().format("YYYY-MM-DD");
@@ -51,10 +46,35 @@ const main = async () => {
         }
       });
       await browser.close(); //关闭浏览器结束
+      setTimeout(() => {
+        process.exit();
+      }, 10000);
     };
     reloadTimer = setInterval(() => {
       page.reload();
     }, 120000);
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      let isTargetUrl = request._url.startsWith(
+        "https://www.eteams.cn/attendapp/timecard/check.json"
+      );
+      // let isTargetUrl = request._url.startsWith(
+      //   "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
+      // );
+      if (isTargetUrl) {
+        request.continue({
+          headers: {
+            ...request._headers,
+            "X-Forwarded-For": "223.70.159.3",
+          },
+        });
+        return;
+      }
+
+      // Don't override other requests
+      request.continue();
+    });
+
     page.on("response", (response) => {
       if (
         response._url.includes(
@@ -109,6 +129,7 @@ const main = async () => {
                 res.beginDate
               )}</p>`,
             });
+
             global.checkInTime = res.beginDate;
             global.expectCheckOutTime = new Date(
               global.checkInTime +
@@ -120,14 +141,21 @@ const main = async () => {
             global.reloadTimer = null;
             global.checkInJob = null;
             schedule.scheduleJob(global.expectCheckOutTime, main);
+            // 距离预订的打卡时间
+            let timeDifference =
+              (+global.expectCheckOutTime - +new Date()) / 3600000;
+            // 距离签退时间大于一小时关闭脚本
+            if (timeDifference > 1) {
+              setTimeout(() => {
+                process.exit();
+              }, 10000);
+            }
           }
         });
       }
       return response;
     });
     page.reload();
-
-    // schedule.scheduleJob("00 48 9 * * *", main);
   } catch (err) {
     console.log("签到过程出错了!");
     // await browser.close();
@@ -147,7 +175,7 @@ const init = async () => {
     // 工作日自动打卡
     // 每天9:48分自动打卡
     schedule.scheduleJob("03 30 9 * * *", main);
-    main();
+    // main();
   }
 };
 init();
