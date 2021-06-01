@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
-console.log(process.env);
+// console.log(process.env);
 global.checkInTime = null; // 签到时间
 global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
