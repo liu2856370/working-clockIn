@@ -9,6 +9,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  schedule:
+    - cron:  0 9,17 * * * 
  
 # 一个工作流的根节点jobs,以下可以定义多个job
 jobs:
@@ -56,6 +58,6 @@ jobs:
  
 
  
-    # 编译项目到静态文件
-    - name: Build Static
+    # 开始执行脚本
+    - name: Running
       run: node index
