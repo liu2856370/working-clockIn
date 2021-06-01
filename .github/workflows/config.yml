@@ -61,3 +61,5 @@ jobs:
     # 开始执行脚本
     - name: Running
       run: node index
+      env: 
+        TEST: ${{ secrets.TEST }}
