@@ -7,7 +7,11 @@ global.reloadTimer = null; // 签到前查询
 global.remindTimer = null; // 签到前查询
 global.checkInJob = null; // 定时签到任务
 global.expectCheckOutTime = null; // 预计签退时间
-
+const express = require("express");
+const app = express();
+app.listen(8088, () => {
+  console.log("服务启动");
+});
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
