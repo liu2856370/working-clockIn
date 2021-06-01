@@ -56,10 +56,12 @@ jobs:
     - name: Install Dependencies
       run: npm install
  
-
+    # 创建环境变量
+    - name: create env file
+      run: |
+        touch .env
+        echo TEST =${{ secrets.TEST }} >> .env
  
     # 开始执行脚本
     - name: Running
       run: node index
-      env: 
-        TEST: ${{ secrets.TEST }}
