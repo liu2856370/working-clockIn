@@ -229,7 +229,7 @@ const start = async () => {
     });
   } else {
     console.log(USER_NAME)
-        console.log(process.env.USER_NAME);
+        console.log(process.env.USER_NAME.split(""));
 
     return
     main();
