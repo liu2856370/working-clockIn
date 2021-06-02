@@ -15,7 +15,6 @@ const PASS_WORD = process.env.PASS_WORD;
 // const PASS_WORD = "Zr!@#123";
 
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
-return;
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
