@@ -248,7 +248,6 @@ const start = async () => {
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
-    return
     main();
   }
 };
