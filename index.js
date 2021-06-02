@@ -162,7 +162,11 @@ const main = async () => {
               checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
             );
 
-            console.log("签到时间", new Date(checkInTime).format("hh:mm:ss"));
+            console.log(
+              "签到时间",
+              checkInTime,
+              new Date(checkInTime).format("hh:mm:ss")
+            );
             const checkOutRemind = () => {
               // 签到提醒，如果没有签到，在时间段内提醒
               if (
@@ -183,8 +187,12 @@ const main = async () => {
                 checkOutRemind
               );
             }
+            if (+new Date() > +checkOutRemindTime) {
+              checkOutRemind();
+            }
             console.log(
               "签退提醒时间",
+              +checkOutRemindTime,
               new Date(+checkOutRemindTime).format("hh:mm:ss")
             );
 
@@ -208,6 +216,7 @@ const main = async () => {
             }
             console.log(
               "预计签退时间",
+              +expectCheckOutTime,
               new Date(+expectCheckOutTime).format("hh:mm:ss")
             );
             // 启动定时签退任务
