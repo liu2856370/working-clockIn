@@ -134,6 +134,7 @@ const main = async () => {
             }
             // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
             if (time.getHours() >= 9 && time.getMinutes() >= 50) {
+              global.checkInJob=null;
               clockIn();
             }
             // 签到提醒，如果没有签到，在时间段内提醒
@@ -176,6 +177,10 @@ const main = async () => {
                     content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
                   });
                 }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+                                  send({
+                                    title: "签退提醒！！！",
+                                    content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
+                                  });
               }
             };
             if (!global.checkOutRemindJob) {
@@ -185,6 +190,7 @@ const main = async () => {
               );
             }
             if (+new Date() > +checkOutRemindTime) {
+              global.checkOutRemindJob=null;
               checkOutRemind();
             }
             console.log(
@@ -225,6 +231,7 @@ const main = async () => {
             }
             // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
             if (+new Date() > +expectCheckOutTime) {
+              global.checkOutJob=null;
               clockIn();
             }
             clearInterval(global.checkInRemindTimer);
