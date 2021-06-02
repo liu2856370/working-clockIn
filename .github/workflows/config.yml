@@ -60,7 +60,7 @@ jobs:
     - name: change user info
       run: |
         echo ${{ secrets.USER_NAME }}
-        sed -i '' 's/$USER_NAME/${{ secrets.USER_NAME }}/g' ../../config.js
+        sed -i '' 's/$USER_NAME/${{ secrets.USER_NAME }}/g' ..\/..\/config.js
 
  
     # 开始执行脚本
