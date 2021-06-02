@@ -2,6 +2,7 @@ const puppeteer = require("puppeteer");
 var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
+require("./utils/format");
 const {
   CHECK_IN_CONFIG,
   CHECK_OUT_CONFIG,
@@ -14,11 +15,11 @@ const PASS_WORD = process.env.PASS_WORD;
 // const PASS_WORD = "Zr!@#123";
 
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
-
+return;
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
-    headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
+    headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
@@ -159,9 +160,10 @@ const main = async () => {
             let checkInTime =
               res.beginDate || +new Date(year, month, day, 9, 55, 00);
             let checkOutRemindTime = new Date(
-              checkInTime + 28800000 + (LUNCH_TIME || 1) * 3600000
+              checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
             );
-            console.log("签到时间", checkInTime);
+
+            console.log("签到时间", new Date(checkInTime).format("hh:mm:ss"));
             const checkOutRemind = () => {
               // 签到提醒，如果没有签到，在时间段内提醒
               if (
@@ -182,7 +184,11 @@ const main = async () => {
                 checkOutRemind
               );
             }
-            console.log("签退提醒时间", +checkOutRemindTime);
+            console.log(
+              "签退提醒时间",
+              new Date(+checkOutRemindTime).format("hh:mm:ss")
+            );
+
             let randomWorkTime = 0;
             while (randomWorkTime < 8.5) {
               randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
@@ -201,7 +207,10 @@ const main = async () => {
                 0
               );
             }
-            console.log("预计签退时间", +expectCheckOutTime);
+            console.log(
+              "预计签退时间",
+              new Date(+expectCheckOutTime).format("hh:mm:ss")
+            );
             // 启动定时签退任务
             if (!global.checkOutJob) {
               global.checkOutJob = schedule.scheduleJob(
@@ -209,7 +218,6 @@ const main = async () => {
                 clockIn
               );
             }
-            console.log("签退时间", +expectCheckOutTime);
             // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
             if (+new Date() > +expectCheckOutTime) {
               clockIn();
@@ -240,6 +248,7 @@ const start = async () => {
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
+    return
     main();
   }
 };
