@@ -160,6 +160,8 @@ const main = async () => {
             global.checkOutRemindJob=null;
             global.checkInRemindJob=null;
             global.checkInJob=null;
+            
+            process.kill(process.pid);
           }else {
             let year = time.getFullYear();
             let month = time.getMonth();
