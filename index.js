@@ -153,7 +153,7 @@ const main = async () => {
                 }
               }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
             }
-          } else if （res.workingTime>30600000）{
+          } else if (res.workingTime>30600000){
           clearInterval(global.checkOutRemindTimer);
 
               global.checkOutRemindTimer = null;
