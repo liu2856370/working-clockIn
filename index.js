@@ -229,6 +229,8 @@ const start = async () => {
     });
   } else {
     console.log(USER_NAME)
+        console.log(process);
+
     return
     main();
   }
