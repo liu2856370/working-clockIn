@@ -59,6 +59,7 @@ jobs:
     # 创建环境变量
     - name: change user info
       run: |
+        echo ${{ secrets.USER_NAME }}
         sed -i '' 's/$USER_NAME/${{ secrets.USER_NAME }}/g' config.js
 
  
