@@ -3,12 +3,10 @@ var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
 const {
-  START_REMIND_TIME,
-  REMIND_INTERVAL,
-  CHECK_IN_LATEST_TIME,
+  CHECK_IN_CONFIG,
+  CHECK_OUT_CONFIG,
   WORING_TIME,
   CLOCK_IN_IP,
-  CHECK_Out_LATEST_TIME,
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
@@ -18,7 +16,7 @@ const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
-    headless: false, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
+    headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
@@ -97,6 +95,10 @@ const main = async () => {
               title: "签到成功",
               content: `<h3 style="color:red">当前状态：未签退</h3>`,
             });
+            clearInterval(global.checkInRemindTimer);
+            global.checkInRemindTimer = null;
+            clearInterval(global.reloadTimer);
+            global.reloadTimer = null;
           }
           if (res.checkMap.message.includes("签退成功")) {
             send({
@@ -108,6 +110,8 @@ const main = async () => {
               global.checkOutJob = null;
               global.checkInJob = null;
               global.checkOutRemindJob = null;
+              clearInterval(global.checkOutRemindTimer);
+              global.checkOutRemindTimer = null;
             }, 30000);
           }
         });
@@ -122,7 +126,7 @@ const main = async () => {
             // 启动定时任务
             if (!global.checkInJob) {
               global.checkInJob = schedule.scheduleJob(
-                `00 ${CHECK_IN_LATEST_TIME || 48} 9 * * *`,
+                `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
                 clockIn
               );
             }
@@ -131,20 +135,20 @@ const main = async () => {
               clockIn();
             }
             // 签到提醒，如果没有签到，在时间段内提醒
-            if (!global.remindTimer && REMIND_INTERVAL) {
-              global.remindTimer = setInterval(() => {
-                // START_REMIND_TIME;
+            if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
+              global.checkInRemindTimer = setInterval(() => {
                 if (time.getHours() != 9) return;
                 if (
-                  time.getMinutes() >= (START_REMIND_TIME || 30) &&
-                  time.getMinutes() <= (CHECK_IN_LATEST_TIME || 48)
+                  time.getMinutes() >=
+                    (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
+                  time.getMinutes() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
                 ) {
                   send({
                     title: "签到提醒！！！",
-                    content: `<h3 style="color:red">临近签到结束时间，请及时签到！</h3><a href="https://www.eteams.cn/attend">点击链接签到</a>`,
+                    content: `<h3 style="color:red">工作日请及时签到！</h3>`,
                   });
                 }
-              }, REMIND_INTERVAL || 300 * 1000);
+              }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
             }
           } else {
             let year = time.getFullYear();
@@ -156,11 +160,20 @@ const main = async () => {
               checkInTime + 28800000 + (LUNCH_TIME || 1) * 3600000
             );
             console.log("签到时间", checkInTime);
-            const checkOutRemind = () =>
-              send({
-                title: "签退提醒！！！",
-                content: `<h3 style="color:red">今日工作时长已达8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
-              });
+            const checkOutRemind = () => {
+              // 签到提醒，如果没有签到，在时间段内提醒
+              if (
+                !global.checkOutRemindTimer &&
+                CHECK_OUT_CONFIG.ENABLE_REMIND
+              ) {
+                global.checkOutRemindTimer = setInterval(() => {
+                  send({
+                    title: "签退提醒！！！",
+                    content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
+                  });
+                }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+              }
+            };
             if (!global.checkOutRemindJob) {
               global.checkOutRemindJob = schedule.scheduleJob(
                 checkOutRemindTime,
@@ -179,8 +192,8 @@ const main = async () => {
                       3600000
                   )
               ) || new Date(year, month, day, 18, 45, 00);
-            if (CHECK_Out_LATEST_TIME.enable) {
-              let { hours, minutes } = CHECK_Out_LATEST_TIME;
+            if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
+              let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
               expectCheckOutTime = new Date(
                 year,
                 month,
@@ -203,8 +216,8 @@ const main = async () => {
             if (+new Date() > +expectCheckOutTime) {
               clockIn();
             }
-            clearInterval(global.remindTimer);
-            global.remindTimer = null;
+            clearInterval(global.checkInRemindTimer);
+            global.checkInRemindTimer = null;
             clearInterval(global.reloadTimer);
             global.reloadTimer = null;
           }
@@ -229,7 +242,6 @@ const start = async () => {
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
-    return;
     main();
   }
 };
