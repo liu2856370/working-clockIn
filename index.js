@@ -2,16 +2,17 @@ const puppeteer = require("puppeteer");
 var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
-var {
+const {
   START_REMIND_TIME,
   REMIND_INTERVAL,
   CHECK_IN_LATEST_TIME,
   WORING_TIME,
   CLOCK_IN_IP,
-  USER_NAME,
-  PASS_WORD,
   CHECK_Out_LATEST_TIME,
 } = require("./config.js");
+const USER_NAME = process.env.USER_NAME;
+const PASS_WORD = process.env.PASS_WORD;
+
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 
 const main = async () => {
@@ -228,10 +229,7 @@ const start = async () => {
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
-    console.log(USER_NAME)
-        console.log(process.env.USER_NAME.split(""));
-
-    return
+    return;
     main();
   }
 };
