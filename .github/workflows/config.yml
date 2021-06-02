@@ -59,10 +59,13 @@ jobs:
     # 创建环境变量
     - name: change user info
       run: |
+        echo $NODE_ENV
         echo ${{ secrets.USER_NAME }}
-        sed -i '' 's/$USER_NAME/${{ secrets.USER_NAME }}/g' ..\/..\/config.js
+        sed -i '' 's/$USER_NAME/${{ secrets.USER_NAME }}/g' config.js
 
  
     # 开始执行脚本
     - name: Running
       run: node index
+      env: 
+        USER_NAME: ${{ secrets.USER_NAME }}
