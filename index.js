@@ -169,10 +169,7 @@ const main = async () => {
             );
             const checkOutRemind = () => {
               // 签到提醒，如果没有签到，在时间段内提醒
-              if (
-                !global.checkOutRemindTimer &&
-                CHECK_OUT_CONFIG.ENABLE_REMIND
-              ) {
+              if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
                 global.checkOutRemindTimer = setInterval(() => {
                   send({
                     title: "签退提醒！！！",
