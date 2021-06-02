@@ -14,7 +14,7 @@ const CHECK_OUT_CONFIG = {
   },
 };
 
-const WORING_TIME = 8.5; // 工作时长，即在签到时间基础上增加8.5小时打卡（实际为8.5上下的随机数并增加1小时的午休时长）
+const WORING_TIME = 8; // 工作时长，即在签到时间基础上增加8.5小时打卡（实际为8.5上下的随机数并增加1小时的午休时长）
 
 const CLOCK_IN_IP = "223.70.159.3"; // 设置打卡的 IP 地址
 module.exports = {
