@@ -10,9 +10,7 @@ const {
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
-console.log(USER_NAME.split(""));
-console.log(PASS_WORD.split(""));
-return
+
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 
 const main = async () => {
