@@ -153,7 +153,14 @@ const main = async () => {
                 }
               }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
             }
-          } else {
+          } else if （res.workingTime>30600000）{
+          clearInterval(global.checkOutRemindTimer);
+
+              global.checkOutRemindTimer = null;
+            global.checkOutRemindJob=null;
+            global.checkInRemindJob=null;
+            global.checkInJob=null;
+          }else {
             let year = time.getFullYear();
             let month = time.getMonth();
             let day = time.getDate();
