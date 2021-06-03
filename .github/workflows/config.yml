@@ -10,7 +10,7 @@ on:
   pull_request:
     branches: [ master ]
   schedule:
-    - cron:  25 1,9 * * * 
+    - cron:  33 17 * * * 
  
 # 一个工作流的根节点jobs,以下可以定义多个job
 jobs:
