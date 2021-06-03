@@ -1,7 +1,7 @@
 const CHECK_IN_CONFIG = {
   ENABLE_REMIND: true, // 是否开启签到提醒
   REMIND_INTERVAL: 5, // 签到提醒的时间间隔，单位为分钟
-  START_REMIND_TIME: 30, // 签到提醒的开始时间（填写分钟，hours默认为9，不可更改）,即每天9:30开始发送签到提醒
+  START_REMIND_TIME: 10, // 签到提醒的开始时间（填写分钟，hours默认为9，不可更改）,即每天9:30开始发送签到提醒
   LATEST_TIME: 48, // 最后的签到时间，在此之前只会发送提醒，并且手动签到后不会再自动签到
 };
 const CHECK_OUT_CONFIG = {
