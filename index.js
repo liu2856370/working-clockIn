@@ -59,6 +59,7 @@ const main = async () => {
     if (!global.reloadTimer) {
       global.reloadTimer = setInterval(() => {
         page.reload();
+        console.log("刷新浏览器");
       }, 120000);
     }
     await page.setRequestInterception(true);
@@ -83,7 +84,7 @@ const main = async () => {
       request.continue();
     });
 
-    page.on("response", (response) => {
+    page.on("response", async (response) => {
       let time = new Date();
 
       if (
@@ -91,168 +92,172 @@ const main = async () => {
           "https://www.eteams.cn/attendapp/timecard/check.json"
         )
       ) {
-        response.json().then((res) => {
-          if (res.checkMap.message.includes("签到成功")) {
-            send({
-              title: "签到成功",
-              content: `<h3 style="color:red">当前状态：未签退</h3>`,
-            });
+        const res = await response.json();
+        if (res.checkMap.message.includes("签到成功")) {
+          console.log("脚本自动签到成功！");
+          send({
+            title: "签到成功",
+            content: `<h3 style="color:red">当前状态：未签退</h3>`,
+          });
+          clearInterval(global.checkInRemindTimer);
+          global.checkInRemindTimer = null;
+          clearInterval(global.reloadTimer);
+          global.reloadTimer = null;
+        }
+        if (res.checkMap.message.includes("签退成功")) {
+          console.log("脚本自动签退成功！");
+
+          send({
+            title: "签退成功",
+            content: `<h3 style="color:red">当前状态：已签退</h3>`,
+          });
+          await setTimeout(async () => {
+            await browser.close(); //关闭浏览器结束
+            global.checkOutJob = null;
+            global.checkInJob = null;
+            global.checkOutRemindJob = null;
+            clearInterval(global.checkOutRemindTimer);
+            global.checkOutRemindTimer = null;
             clearInterval(global.checkInRemindTimer);
             global.checkInRemindTimer = null;
             clearInterval(global.reloadTimer);
             global.reloadTimer = null;
-          }
-          if (res.checkMap.message.includes("签退成功")) {
-            send({
-              title: "签退成功",
-              content: `<h3 style="color:red">当前状态：已签退</h3>`,
-            });
-            setTimeout(async () => {
-              await browser.close(); //关闭浏览器结束
-              global.checkOutJob = null;
-              global.checkInJob = null;
-              global.checkOutRemindJob = null;
-              clearInterval(global.checkOutRemindTimer);
-              global.checkOutRemindTimer = null;
-            }, 30000);
-          }
-        });
+          }, 30000);
+          process.kill(process.pid);
+        }
       }
       if (
         response._url ==
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
-        response.json().then((res) => {
-          // 如果没有签到，每30秒发送一次提醒
-          if (!res.beginDate) {
-            // 启动定时任务
-            if (!global.checkInJob) {
-              global.checkInJob = schedule.scheduleJob(
-                `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
-                clockIn
-              );
-            }
-            // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
-            if (time.getHours() >= 9 && time.getMinutes() >= 50) {
-              global.checkInJob=null;
-              clockIn();
-            }
-            // 签到提醒，如果没有签到，在时间段内提醒
-            if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
-              global.checkInRemindTimer = setInterval(() => {
-                if (new Date().getHours() != 9) return;
-                if (
-                  new Date().getMinutes() >=
-                    (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
-                  new Date().getMinutes() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
-                ) {
-                  send({
-                    title: "签到提醒！！！",
-                    content: `<h3 style="color:red">工作日请及时签到！</h3>`,
-                  });
-                }
-              }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
-              send({
-                    title: "签到提醒！！！",
-                    content: `<h3 style="color:red">工作日请及时签到！</h3>`,
-                  });
-            }
-          } else if (res.workingTime>30600000){
-          clearInterval(global.checkOutRemindTimer);
-
-              global.checkOutRemindTimer = null;
-            global.checkOutRemindJob=null;
-            global.checkInRemindJob=null;
-            global.checkInJob=null;
-            
-          //  process.kill(process.pid);
-          }else {
-            let year = time.getFullYear();
-            let month = time.getMonth();
-            let day = time.getDate();
-            let checkInTime =
-              res.beginDate || +new Date(year, month, day, 9, 55, 00);
-            let checkOutRemindTime = new Date(
-              checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
+        const res = await response.json();
+        // 如果没有签到，每30秒发送一次提醒
+        if (!res.beginDate) {
+          // 启动定时任务
+          if (!global.checkInJob) {
+            global.checkInJob = schedule.scheduleJob(
+              `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
+              clockIn
             );
-
-            console.log(
-              "签到时间",
-              checkInTime,
-              new Date(checkInTime).format("hh:mm:ss")
-            );
-            const checkOutRemind = () => {
-              // 签到提醒，如果没有签到，在时间段内提醒
-              if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
-                global.checkOutRemindTimer = setInterval(() => {
-                  send({
-                    title: "签退提醒！！！",
-                    content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
-                  });
-                }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
-                                  send({
-                                    title: "签退提醒！！！",
-                                    content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
-                                  });
-              }
-            };
-            if (!global.checkOutRemindJob) {
-              global.checkOutRemindJob = schedule.scheduleJob(
-                checkOutRemindTime,
-                checkOutRemind
-              );
-            }
-            if (+new Date() > +checkOutRemindTime) {
-              global.checkOutRemindJob=null;
-              checkOutRemind();
-            }
-            console.log(
-              "签退提醒时间",
-              +checkOutRemindTime,
-              new Date(+checkOutRemindTime).format("hh:mm:ss")
-            );
-
-            let randomWorkTime = 0;
-            while (randomWorkTime < 8.5) {
-              randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
-            }
-            let expectCheckOutTime = new Date(
-              checkInTime + parseInt(randomWorkTime * 3600000)
-            );
-            if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
-              let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
-              expectCheckOutTime = new Date(
-                year,
-                month,
-                day,
-                hours,
-                minutes,
-                0
-              );
-            }
-            console.log(
-              "预计签退时间",
-              +expectCheckOutTime,
-              new Date(+expectCheckOutTime).format("hh:mm:ss")
-            );
-            // 启动定时签退任务
-            if (!global.checkOutJob) {
-              global.checkOutJob = schedule.scheduleJob(
-                expectCheckOutTime,
-                clockIn
-              );
-            }
-            // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
-            if (+new Date() > +expectCheckOutTime) {
-              global.checkOutJob=null;
-              clockIn();
-            }
-            clearInterval(global.checkInRemindTimer);
-            global.checkInRemindTimer = null;
-            clearInterval(global.reloadTimer);
-            global.reloadTimer = null;
           }
-        });
+          // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
+          if (time.getHours() >= 9 && time.getMinutes() >= 50) {
+            global.checkInJob = null;
+            clockIn();
+          }
+          // 签到提醒，如果没有签到，在时间段内提醒
+          if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
+            global.checkInRemindTimer = setInterval(() => {
+              if (new Date().getHours() != 9) return;
+              if (
+                new Date().getMinutes() >=
+                  (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
+                new Date().getMinutes() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
+              ) {
+                send({
+                  title: "签到提醒！！！",
+                  content: `<h3 style="color:red">工作日请及时签到！</h3>`,
+                });
+              }
+            }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+            send({
+              title: "签到提醒！！！",
+              content: `<h3 style="color:red">工作日请及时签到！</h3>`,
+            });
+          }
+        } else {
+          clearInterval(global.checkInRemindTimer);
+          global.checkInRemindTimer = null;
+          process.exit(main);
+        }
+
+        // 未正常签退
+        if (res.workingTime < 30600000) {
+          let year = time.getFullYear();
+          let month = time.getMonth();
+          let day = time.getDate();
+          let checkInTime =
+            res.beginDate || +new Date(year, month, day, 9, 55, 00);
+          let checkOutRemindTime = new Date(
+            checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
+          );
+
+          console.log(
+            "签到时间",
+            checkInTime,
+            new Date(checkInTime).format("hh:mm:ss")
+          );
+          const checkOutRemind = () => {
+            // 签到提醒，如果没有签到，在时间段内提醒
+            if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
+              global.checkOutRemindTimer = setInterval(() => {
+                send({
+                  title: "签退提醒！！！",
+                  content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
+                });
+              }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+              send({
+                title: "签退提醒！！！",
+                content: `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${checkInTime}</p>`,
+              });
+            }
+          };
+          if (!global.checkOutRemindJob) {
+            global.checkOutRemindJob = schedule.scheduleJob(
+              checkOutRemindTime,
+              checkOutRemind
+            );
+          }
+          if (+new Date() > +checkOutRemindTime) {
+            global.checkOutRemindJob = null;
+            checkOutRemind();
+          }
+          console.log(
+            "签退提醒时间",
+            +checkOutRemindTime,
+            new Date(+checkOutRemindTime).format("hh:mm:ss")
+          );
+
+          let randomWorkTime = 0;
+          while (randomWorkTime < 8.5) {
+            randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
+          }
+          let expectCheckOutTime = new Date(
+            checkInTime + parseInt(randomWorkTime * 3600000)
+          );
+          if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
+            let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
+            expectCheckOutTime = new Date(year, month, day, hours, minutes, 0);
+          }
+          console.log(
+            "预计签退时间",
+            +expectCheckOutTime,
+            new Date(+expectCheckOutTime).format("hh:mm:ss")
+          );
+          // 启动定时签退任务
+          if (!global.checkOutJob) {
+            global.checkOutJob = schedule.scheduleJob(
+              expectCheckOutTime,
+              clockIn
+            );
+          }
+          // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
+          if (+new Date() > +expectCheckOutTime) {
+            global.checkOutJob = null;
+            clockIn();
+          }
+
+          clearInterval(global.reloadTimer);
+          global.reloadTimer = null;
+        } else {
+          clearInterval(global.checkOutRemindTimer);
+          global.checkOutRemindTimer = null;
+          global.checkOutRemindJob = null;
+          global.checkInJob = null;
+          global.checkOutJob = null;
+
+          //  process.kill(process.pid);
+        }
       }
       return response;
     });
@@ -273,6 +278,7 @@ const start = async () => {
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
+    console.log("今天是工作日，启动打卡脚本！");
     main();
   }
 };
