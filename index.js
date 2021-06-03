@@ -169,7 +169,7 @@ const main = async () => {
           }
         } else {
           console.log("今日已正常签到，关闭脚本！");
-          if (+dayjs() < +dayjs().hour(17).minute(00)) {
+          if (+dayjs()+28800000 < +dayjs().hour(17).minute(00)+28800000) {
             clearInterval(global.checkOutRemindTimer);
             clearInterval(global.checkInRemindTimer);
             clearInterval(global.reloadTimer);
