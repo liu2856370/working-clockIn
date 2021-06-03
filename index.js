@@ -140,11 +140,11 @@ const main = async () => {
             // 签到提醒，如果没有签到，在时间段内提醒
             if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
               global.checkInRemindTimer = setInterval(() => {
-                if (time.getHours() != 9) return;
+                if (new Date().getHours() != 9) return;
                 if (
-                  time.getMinutes() >=
+                  new Date().getMinutes() >=
                     (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
-                  time.getMinutes() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
+                  new Date().getMinutes() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
                 ) {
                   send({
                     title: "签到提醒！！！",
@@ -152,6 +152,10 @@ const main = async () => {
                   });
                 }
               }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+              send({
+                    title: "签到提醒！！！",
+                    content: `<h3 style="color:red">工作日请及时签到！</h3>`,
+                  });
             }
           } else if (res.workingTime>30600000){
           clearInterval(global.checkOutRemindTimer);
