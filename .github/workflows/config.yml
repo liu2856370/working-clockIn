@@ -5,7 +5,11 @@ name: clockIn
 # 触发条件 branches限定分支
 # push推送到master动作,pull_request是合并到master动作
 on:
-    schedule:
+   push:
+     branches: [ master ]
+   pull_request:
+      branches: [ master ]
+   schedule:
         -
             # 16:00 UTC <==> 00:00(next day) GMT +08:00
             cron: 19 2 * * *
