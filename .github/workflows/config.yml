@@ -5,12 +5,8 @@ name: clockIn
 # 触发条件 branches限定分支
 # push推送到master动作,pull_request是合并到master动作
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   schedule:
-    - cron:  '50,51 9,10 * * *'
+    - cron:  '*/5 * * * *'
  
 # 一个工作流的根节点jobs,以下可以定义多个job
 jobs:
