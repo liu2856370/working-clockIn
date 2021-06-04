@@ -8,9 +8,9 @@ on:
    push:
      branches: [ master ]
    pull_request:
-      branches: [ master ]
+     branches: [ master ]
    schedule:
-        - cron: 45 7 * * *
+     - cron: '49 7 * * *'
  
 # 一个工作流的根节点jobs,以下可以定义多个job
 jobs:
