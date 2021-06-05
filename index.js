@@ -145,7 +145,7 @@ const main = async () => {
             );
           }
           // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
-          if (dayjs().hour()+8 == 9 && dayjs().hour()+8 >= 50) {
+          if (dayjs().hour() + 8 == 9 && dayjs().hour() + 8 >= 50) {
             console.log("启动定时签到 Job");
 
             global.checkInJob = null;
@@ -154,7 +154,7 @@ const main = async () => {
           // 签到提醒，如果没有签到，在时间段内提醒
           if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
             global.checkInRemindTimer = setInterval(() => {
-              if (dayjs().hour()+8 != 9) return;
+              if (dayjs().hour() + 8 != 9) return;
               if (
                 dayjs().minute() >= (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
                 dayjs().minute() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
@@ -197,14 +197,14 @@ const main = async () => {
           console.log(
             "签到时间",
             checkInTime,
-            dayjs((checkInTime)).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
           );
           const checkOutRemind = () => {
             // 签到提醒，如果没有签到，在时间段内提醒
             if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
               let title = "签退提醒！！！";
               let content = `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${dayjs(
-                (checkInTime)
+                checkInTime
               ).format("YYYY-MM-DD hh:mm:ss")}</p>`;
               global.checkOutRemindTimer = setInterval(() => {
                 console.log("开始签退提醒！");
@@ -300,16 +300,21 @@ const main = async () => {
 };
 const start = async () => {
   // 调用免费查询是否为工作日的 API
-  const {data} = await axios.get("https://api.apihubs.cn/holiday/get?field=workday&date=20210615&cn=1&size=1");
+  const res = await axios.get(
+    `https://api.apihubs.cn/holiday/get?field=workday&date=${dayjs(
+      reviseTime(+dayjs())
+    ).format("YYYYMMDD")}&cn=1&size=1`
+  );
+  let list = res?.data?.data?.list || [];
   //  如果为工作日，通过 pushPlus提醒到微信进行二次确认
-  if (data.list[0]?.workday_cn=="非工作日") {
-    await send({
+  if (list[0].workday_cn == "非工作日") {
+    send({
       title: "节假日确认打卡",
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
-    return
+    return;
     main();
   }
 };
