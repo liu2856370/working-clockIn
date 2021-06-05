@@ -312,7 +312,7 @@ const start = async () => {
       title: "节假日确认打卡",
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
-    schedule.scheduleJob(+dayjs()+10*60*1000,()=>{console.log('测试定时任务！')})
+//     schedule.scheduleJob(+dayjs()+10*60*1000,()=>{console.log('测试定时任务！')})
   } else {
     console.log("今天是工作日，启动打卡脚本！");
     main();
