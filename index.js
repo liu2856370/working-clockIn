@@ -300,9 +300,9 @@ const main = async () => {
 };
 const start = async () => {
   // 调用免费查询是否为工作日的 API
-  const todayInfo = await axios.get("http://timor.tech/api/holiday/info");
+  const {data} = await axios.get("https://api.apihubs.cn/holiday/get?field=workday&date=20210615&cn=1&size=1");
   //  如果为工作日，通过 pushPlus提醒到微信进行二次确认
-  if (todayInfo.data.holiday) {
+  if (data.list?[0]?.workday_cn=="非工作日") {
     await send({
       title: "节假日确认打卡",
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
