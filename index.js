@@ -107,7 +107,7 @@ const main = async () => {
           console.log("脚本自动签到成功！");
           send({
             title: "签到成功",
-            content: `<h3 style="color:red">当前状态：未签退</h3>`,
+            content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：未签退</p>`,
           });
           clearInterval(global.checkInRemindTimer);
           clearInterval(global.reloadTimer);
@@ -117,7 +117,7 @@ const main = async () => {
 
           send({
             title: "签退成功",
-            content: `<h3 style="color:red">当前状态：已签退</h3>`,
+            content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：已签退</p>`,
           });
           await setTimeout(async () => {
             await browser.close(); //关闭浏览器结束、
@@ -169,8 +169,17 @@ const main = async () => {
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
           }
         } else {
-          console.log("今日已正常签到，关闭脚本！");
           if (reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))) {
+            send({
+              title: "签到成功",
+              content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
+                checkInTime
+              ).format(
+                "YYYY-MM-DD hh:mm:ss"
+              )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
+            });
+            console.log("今日已正常签到，关闭脚本！");
+
             clearInterval(global.checkOutRemindTimer);
             clearInterval(global.checkInRemindTimer);
             clearInterval(global.reloadTimer);
@@ -271,7 +280,14 @@ const main = async () => {
 
           clearInterval(global.reloadTimer);
         } else {
+          send({
+            title: "签退成功",
+            content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
+              checkInTime + res.workingTime
+            ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
+          });
           console.log("今日已正常签退，关闭脚本！");
+
           clearInterval(global.checkOutRemindTimer);
           clearInterval(global.checkInRemindTimer);
           clearInterval(global.reloadTimer);
