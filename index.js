@@ -24,16 +24,7 @@ const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
 };
-console.log(
-  "现在的时间",
-  dayjs(reviseTime(+dayjs())).format("YYYY-MM-DD HH:mm:ss")
-);
-console.log(
-  "北京时间五点",
-  dayjs(reviseTime(+dayjs().hour(17).minute(00))).format("YYYY-MM-DD HH:mm:ss")
-);
-console.log(reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00)));
-return;
+
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
@@ -147,7 +138,7 @@ const main = async () => {
       ) {
         const res = await response?.json();
         let checkInTime =
-          reviseTime(res?.beginDate) || reviseTime(+dayjs().hour(9).minute(55));
+          reviseTime(res?.beginDate) || +dayjs().hour(9).minute(55);
         // 如果没有签到，每30秒发送一次提醒
         if (!res.beginDate) {
           // 启动定时任务
@@ -181,7 +172,7 @@ const main = async () => {
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
           }
         } else {
-          if (reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))) {
+          if (reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)) {
             await send({
               title: "打卡状态",
               content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
