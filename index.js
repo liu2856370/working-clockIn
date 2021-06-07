@@ -22,6 +22,7 @@ global.checkInRemindTimer = null; // 提醒签到定时器
 global.reloadTimer = null; // 刷新浏览器定时器
 
 const reviseTime = (time) => {
+  if (!time) return null;
   return +time + 28800000;
 };
 const main = async () => {
@@ -136,6 +137,9 @@ const main = async () => {
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
         const res = await response.json();
+        console.log("暂未签退");
+        let checkInTime =
+          reviseTime(res?.beginDate) || reviseTime(+dayjs().hour(9).minute(55));
         // 如果没有签到，每30秒发送一次提醒
         if (!res.beginDate) {
           // 启动定时任务
@@ -194,10 +198,6 @@ const main = async () => {
 
         // 未正常签退
         if (res.workingTime < 30600000) {
-          console.log("暂未签退");
-          let checkInTime =
-            reviseTime(res.beginDate) ||
-            reviseTime(+dayjs().hour(9).minute(55));
           let checkOutRemindTime = reviseTime(
             +dayjs(checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000)
           );
