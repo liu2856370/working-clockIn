@@ -9,8 +9,10 @@ const {
   CHECK_OUT_CONFIG,
   CLOCK_IN_IP,
 } = require("./config.js");
-const USER_NAME = process.env.USER_NAME;
-const PASS_WORD = process.env.PASS_WORD;
+// const USER_NAME = process.env.USER_NAME;
+// const PASS_WORD = process.env.PASS_WORD;
+const USER_NAME = "15557881220";
+const PASS_WORD = "Zr!@#123";
 
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
@@ -140,179 +142,180 @@ const main = async () => {
         response._url ==
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
-                let res
-        try {
-          res = await response.json();
-        } catch (error) {
-          console.log(error);
-        }
+        response.json().then((res) => {
+          let checkInTime =
+            reviseTime(res?.beginDate) ||
+            reviseTime(+dayjs().hour(9).minute(55));
+          // 如果没有签到，每30秒发送一次提醒
+          if (!res.beginDate) {
+            // 启动定时任务
+            if (!global.checkInJob) {
+              console.log("启动定时签到 Job");
+              global.checkInJob = schedule.scheduleJob(
+                `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
+                clockIn
+              );
+            }
+            // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
+            if (dayjs().hour() + 8 == 9 && dayjs().hour() + 8 >= 50) {
+              console.log("启动定时签到 Job");
 
-        let checkInTime =
-          reviseTime(res?.beginDate) || reviseTime(+dayjs().hour(9).minute(55));
-        // 如果没有签到，每30秒发送一次提醒
-        if (!res.beginDate) {
-          // 启动定时任务
-          if (!global.checkInJob) {
-            console.log("启动定时签到 Job");
-            global.checkInJob = schedule.scheduleJob(
-              `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
-              clockIn
+              global.checkInJob = null;
+              clockIn();
+            }
+            // 签到提醒，如果没有签到，在时间段内提醒
+            if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
+              global.checkInRemindTimer = setInterval(() => {
+                if (dayjs().hour() + 8 != 9) return;
+                if (
+                  dayjs().minute() >=
+                    (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
+                  dayjs().minute() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
+                ) {
+                  send({
+                    title: "签到提醒！！！",
+                    content: `<h3 style="color:red">工作日请及时签到！</h3>`,
+                  });
+                }
+              }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+            }
+          } else {
+            if (
+              reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))
+            ) {
+              await send({
+                title: "签到成功",
+                content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
+                  checkInTime
+                ).format(
+                  "YYYY-MM-DD hh:mm:ss"
+                )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
+              });
+              console.log(
+                "签到时间",
+                checkInTime,
+                dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+              );
+              console.log("今日已正常签到，关闭脚本！");
+              clearInterval(global.checkOutRemindTimer);
+              clearInterval(global.checkInRemindTimer);
+              clearInterval(global.reloadTimer);
+              global.checkOutRemindJob?.cancel();
+              global.checkInJob?.cancel();
+              global.checkOutJob?.cancel();
+              process.exit(main);
+            } else {
+              clearInterval(global.checkInRemindTimer);
+            }
+          }
+          if (res.workingTime < 30600000) {
+            // 未正常签退
+            let checkOutRemindTime = reviseTime(
+              +dayjs(checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000)
             );
-          }
-          // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
-          if (dayjs().hour() + 8 == 9 && dayjs().hour() + 8 >= 50) {
-            console.log("启动定时签到 Job");
-
-            global.checkInJob = null;
-            clockIn();
-          }
-          // 签到提醒，如果没有签到，在时间段内提醒
-          if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
-            global.checkInRemindTimer = setInterval(() => {
-              if (dayjs().hour() + 8 != 9) return;
-              if (
-                dayjs().minute() >= (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
-                dayjs().minute() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
-              ) {
-                send({
-                  title: "签到提醒！！！",
-                  content: `<h3 style="color:red">工作日请及时签到！</h3>`,
-                });
-              }
-            }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
-          }
-        } else {
-          if (reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))) {
-            await send({
-              title: "签到成功",
-              content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
-                checkInTime
-              ).format(
-                "YYYY-MM-DD hh:mm:ss"
-              )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
-            });
+            let randomWorkTime = 0;
+            while (randomWorkTime < 8.5) {
+              randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
+            }
+            let expectCheckOutTime = +dayjs(
+              checkInTime + parseInt(randomWorkTime * 3600000)
+            );
+            if (!res.workingTime && reviseTime(+dayjs()) < expectCheckOutTime) {
+              process.exit(main);
+            }
             console.log(
               "签到时间",
               checkInTime,
               dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
             );
-            console.log("今日已正常签到，关闭脚本！");
+            const checkOutRemind = () => {
+              // 签到提醒，如果没有签到，在时间段内提醒
+              if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
+                let title = "签退提醒！！！";
+                let content = `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${dayjs(
+                  checkInTime
+                ).format("YYYY-MM-DD hh:mm:ss")}</p>`;
+                global.checkOutRemindTimer = setInterval(() => {
+                  console.log("开始签退提醒！");
+                  if (res.workingTime > 0) {
+                    title = "早退提醒！！！";
+                    content = `<h3 style="color:red">检测到早退，请及时处理</h3><p>未处理将会自动覆盖早退时间</p>`;
+                  }
+                  send({ title, content });
+                }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+                send({ title, content });
+              }
+            };
+            if (!global.checkOutRemindJob) {
+              console.log("启动签退提醒 Job！");
+              global.checkOutRemindJob = schedule.scheduleJob(
+                checkOutRemindTime,
+                checkOutRemind
+              );
+            }
+            if (reviseTime(+dayjs()) > checkOutRemindTime) {
+              console.log("已超过签退提醒时间，直接调用签退提醒函数！");
+              global.checkOutRemindJob = null;
+              checkOutRemind();
+            }
+            console.log(
+              "签退提醒时间",
+              checkOutRemindTime,
+              dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
+            );
+
+            if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
+              console.log("开启自动签退 Job！");
+              let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
+
+              expectCheckOutTime = reviseTime(
+                +dayjs().hour(hours).minute(minutes)
+              );
+            }
+            console.log(
+              "预计签退时间",
+              expectCheckOutTime,
+              dayjs(expectCheckOutTime).format("YYYY-MM-DD hh:mm:ss")
+            );
+            // 启动定时签退任务
+            if (!global.checkOutJob) {
+              console.log("启动定时签退 Job！");
+
+              global.checkOutJob = schedule.scheduleJob(
+                expectCheckOutTime,
+                clockIn
+              );
+            }
+            // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
+            if (reviseTime(+dayjs()) > +expectCheckOutTime) {
+              console.log("已预计签退时间，直接调用签退函数！");
+              global.checkOutJob?.cancel();
+              clockIn();
+            }
+
+            clearInterval(global.reloadTimer);
+          } else if (res.workingTime > 30600000) {
+            send({
+              title: "签退成功",
+              content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
+                checkInTime + res.workingTime
+              ).format(
+                "YYYY-MM-DD hh:mm:ss"
+              )}</p><br /><p>当前状态：已签退</p>`,
+            });
+            console.log("今日已正常签退，关闭脚本！");
+
             clearInterval(global.checkOutRemindTimer);
             clearInterval(global.checkInRemindTimer);
             clearInterval(global.reloadTimer);
+
             global.checkOutRemindJob?.cancel();
             global.checkInJob?.cancel();
             global.checkOutJob?.cancel();
             process.exit(main);
-          } else {
-            clearInterval(global.checkInRemindTimer);
+            //  process.kill(process.pid);
           }
-        }
-        if (res.workingTime < 30600000) {
-          // 未正常签退
-          let checkOutRemindTime = reviseTime(
-            +dayjs(checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000)
-          );
-          let randomWorkTime = 0;
-          while (randomWorkTime < 8.5) {
-            randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
-          }
-          let expectCheckOutTime = +dayjs(
-            checkInTime + parseInt(randomWorkTime * 3600000)
-          );
-          if (!res.workingTime && reviseTime(+dayjs()) < expectCheckOutTime) {
-            process.exit(main);
-          }
-          console.log(
-            "签到时间",
-            checkInTime,
-            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
-          );
-          const checkOutRemind = () => {
-            // 签到提醒，如果没有签到，在时间段内提醒
-            if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
-              let title = "签退提醒！！！";
-              let content = `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${dayjs(
-                checkInTime
-              ).format("YYYY-MM-DD hh:mm:ss")}</p>`;
-              global.checkOutRemindTimer = setInterval(() => {
-                console.log("开始签退提醒！");
-                if (res.workingTime > 0) {
-                  title = "早退提醒！！！";
-                  content = `<h3 style="color:red">检测到早退，请及时处理</h3><p>未处理将会自动覆盖早退时间</p>`;
-                }
-                send({ title, content });
-              }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
-              send({ title, content });
-            }
-          };
-          if (!global.checkOutRemindJob) {
-            console.log("启动签退提醒 Job！");
-            global.checkOutRemindJob = schedule.scheduleJob(
-              checkOutRemindTime,
-              checkOutRemind
-            );
-          }
-          if (reviseTime(+dayjs()) > checkOutRemindTime) {
-            console.log("已超过签退提醒时间，直接调用签退提醒函数！");
-            global.checkOutRemindJob = null;
-            checkOutRemind();
-          }
-          console.log(
-            "签退提醒时间",
-            checkOutRemindTime,
-            dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
-          );
-
-          if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
-            console.log("开启自动签退 Job！");
-            let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
-
-            expectCheckOutTime = reviseTime(
-              +dayjs().hour(hours).minute(minutes)
-            );
-          }
-          console.log(
-            "预计签退时间",
-            expectCheckOutTime,
-            dayjs(expectCheckOutTime).format("YYYY-MM-DD hh:mm:ss")
-          );
-          // 启动定时签退任务
-          if (!global.checkOutJob) {
-            console.log("启动定时签退 Job！");
-
-            global.checkOutJob = schedule.scheduleJob(
-              expectCheckOutTime,
-              clockIn
-            );
-          }
-          // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
-          if (reviseTime(+dayjs()) > +expectCheckOutTime) {
-            console.log("已预计签退时间，直接调用签退函数！");
-            global.checkOutJob?.cancel();
-            clockIn();
-          }
-
-          clearInterval(global.reloadTimer);
-        } else if (res.workingTime > 30600000) {
-          send({
-            title: "签退成功",
-            content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
-              checkInTime + res.workingTime
-            ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
-          });
-          console.log("今日已正常签退，关闭脚本！");
-
-          clearInterval(global.checkOutRemindTimer);
-          clearInterval(global.checkInRemindTimer);
-          clearInterval(global.reloadTimer);
-
-          global.checkOutRemindJob?.cancel();
-          global.checkInJob?.cancel();
-          global.checkOutJob?.cancel();
-          process.exit(main);
-          //  process.kill(process.pid);
-        }
+        });
       }
       return response;
     });
