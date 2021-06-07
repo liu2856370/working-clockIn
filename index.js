@@ -178,13 +178,13 @@ const main = async () => {
               content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
                 checkInTime
               ).format(
-                "YYYY-MM-DD hh:mm:ss"
+                "YYYY-MM-DD HH:mm:ss"
               )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
             });
             console.log(
               "签到时间",
               checkInTime,
-              dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+              dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
             );
             console.log("今日已正常签到，关闭脚本！");
             clearInterval(global.checkOutRemindTimer);
@@ -222,7 +222,7 @@ const main = async () => {
           console.log(
             "签到时间",
             checkInTime,
-            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
           );
           const checkOutRemind = () => {
             // 签到提醒，如果没有签到，在时间段内提醒
@@ -257,7 +257,7 @@ const main = async () => {
           console.log(
             "签退提醒时间",
             checkOutRemindTime,
-            dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkOutRemindTime).format("YYYY-MM-DD HH:mm:ss")
           );
 
           if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
@@ -269,7 +269,7 @@ const main = async () => {
           console.log(
             "预计签退时间",
             expectCheckOutTime,
-            dayjs(expectCheckOutTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(expectCheckOutTime).format("YYYY-MM-DD HH:mm:ss")
           );
           // 启动定时签退任务
           if (!global.checkOutJob) {
@@ -290,7 +290,7 @@ const main = async () => {
           clearInterval(global.reloadTimer);
         } else if (res.workingTime > 30600000) {
           send({
-            title: "签退成功",
+            title: "打卡提示",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
             ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
