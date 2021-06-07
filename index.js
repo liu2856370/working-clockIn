@@ -181,13 +181,18 @@ const main = async () => {
                 "YYYY-MM-DD hh:mm:ss"
               )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
             });
+            console.log(
+              "签到时间",
+              checkInTime,
+              dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+            );
             console.log("今日已正常签到，关闭脚本！");
-            // clearInterval(global.checkOutRemindTimer);
-            // clearInterval(global.checkInRemindTimer);
-            // clearInterval(global.reloadTimer);
-            // global.checkOutRemindJob?.cancel();
-            // global.checkInJob?.cancel();
-            // global.checkOutJob?.cancel();
+            clearInterval(global.checkOutRemindTimer);
+            clearInterval(global.checkInRemindTimer);
+            clearInterval(global.reloadTimer);
+            global.checkOutRemindJob?.cancel();
+            global.checkInJob?.cancel();
+            global.checkOutJob?.cancel();
             setTimeout(() => {
               process.exit(main);
             }, 3000);
@@ -195,12 +200,21 @@ const main = async () => {
             clearInterval(global.checkInRemindTimer);
           }
         }
-
-        // 未正常签退
         if (res.workingTime < 30600000) {
+          // 未正常签退
           let checkOutRemindTime = reviseTime(
             +dayjs(checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000)
           );
+          let randomWorkTime = 0;
+          while (randomWorkTime < 8.5) {
+            randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
+          }
+          let expectCheckOutTime = +dayjs(
+            checkInTime + parseInt(randomWorkTime * 3600000)
+          );
+          if (!res.workingTime && reviseTime(+dayjs()) < expectCheckOutTime) {
+            process.exit(main);
+          }
           console.log(
             "签到时间",
             checkInTime,
@@ -242,13 +256,6 @@ const main = async () => {
             dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
           );
 
-          let randomWorkTime = 0;
-          while (randomWorkTime < 8.5) {
-            randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
-          }
-          let expectCheckOutTime = +dayjs(
-            checkInTime + parseInt(randomWorkTime * 3600000)
-          );
           if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
             console.log("开启自动签退 Job！");
             let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
@@ -279,7 +286,7 @@ const main = async () => {
           }
 
           clearInterval(global.reloadTimer);
-        } else {
+        } else if (res.workingTime > 30600000) {
           send({
             title: "签退成功",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
