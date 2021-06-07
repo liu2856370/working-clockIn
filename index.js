@@ -293,7 +293,7 @@ const main = async () => {
             title: "打卡提示",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
-            ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
+            ).format("YYYY-MM-DD HH:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
           });
           console.log("今日已正常签退，关闭脚本！");
 
