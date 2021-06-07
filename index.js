@@ -135,7 +135,7 @@ const main = async () => {
         response._url ==
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
-        const res = await response.json();
+        const res = await response?.json();
         let checkInTime =
           reviseTime(res?.beginDate) || reviseTime(+dayjs().hour(9).minute(55));
         // 如果没有签到，每30秒发送一次提醒
@@ -173,7 +173,7 @@ const main = async () => {
         } else {
           if (reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))) {
             await send({
-              title: "签到成功",
+              title: "打卡状态",
               content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
                 checkInTime
               ).format(
@@ -209,7 +209,13 @@ const main = async () => {
           let expectCheckOutTime = +dayjs(
             checkInTime + parseInt(randomWorkTime * 3600000)
           );
-          if (!res.workingTime && reviseTime(+dayjs()) < expectCheckOutTime) {
+          console.log("该打卡了");
+          console.log(res.workingTime);
+          console.log(reviseTime(+dayjs()) < expectCheckOutTime);
+          if (
+            !res.workingTime &&
+            reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))
+          ) {
             process.exit(main);
           }
           console.log(
