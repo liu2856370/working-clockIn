@@ -102,7 +102,12 @@ const main = async () => {
           "https://www.eteams.cn/attendapp/timecard/check.json"
         )
       ) {
-        const res = await response.json();
+        let res;
+        try {
+          res = await response.json();
+        } catch (error) {
+          console.log(error);
+        }
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
           send({
