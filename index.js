@@ -200,13 +200,14 @@ const main = async () => {
         }
         if (res.workingTime < 30600000) {
           // 未正常签退
-          let checkOutRemindTime = reviseTime(
-            +dayjs(checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000)
+          let checkOutRemindTime = +dayjs(
+            checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
           );
           let randomWorkTime = 0;
           while (randomWorkTime < 8.5) {
             randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
           }
+          console.log("随机工作时长", randomWorkTime);
           let expectCheckOutTime = +dayjs(
             checkInTime + parseInt(randomWorkTime * 3600000)
           );
