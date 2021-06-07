@@ -142,7 +142,7 @@ const main = async () => {
         response._url ==
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
-        response.json().then((res) => {
+        response.json().then(async(res) => {
           let checkInTime =
             reviseTime(res?.beginDate) ||
             reviseTime(+dayjs().hour(9).minute(55));
