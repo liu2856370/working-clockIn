@@ -210,12 +210,10 @@ const main = async () => {
           let expectCheckOutTime = +dayjs(
             checkInTime + parseInt(randomWorkTime * 3600000)
           );
-          console.log("该打卡了");
-          console.log(res.workingTime);
-          console.log(reviseTime(+dayjs()) < expectCheckOutTime);
+
           if (
             !res.workingTime &&
-            reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))
+            reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
           ) {
             process.exit(main);
           }
@@ -264,9 +262,7 @@ const main = async () => {
             console.log("开启自动签退 Job！");
             let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
 
-            expectCheckOutTime = reviseTime(
-              +dayjs().hour(hours).minute(minutes)
-            );
+            expectCheckOutTime = +dayjs().hour(hours).minute(minutes);
           }
           console.log(
             "预计签退时间",
