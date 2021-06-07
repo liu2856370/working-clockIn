@@ -73,7 +73,7 @@ const main = async () => {
       global.reloadTimer = setInterval(() => {
         page.reload();
         console.log("刷新浏览器");
-      }, (Math.random() * 3 + 5).toFixed(2) * 60 * 1000);
+      }, (Math.random() * 3).toFixed(2) * 60 * 1000);
     }
     await page.setRequestInterception(true);
     page.on("request", (request) => {
@@ -198,6 +198,7 @@ const main = async () => {
             clearInterval(global.checkInRemindTimer);
           }
         }
+        console.log(res.workingTime)
         if (res.workingTime < 30600000) {
           // 未正常签退
           let checkOutRemindTime = +dayjs(
