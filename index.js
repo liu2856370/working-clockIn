@@ -304,7 +304,9 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
+          setTimeout(()=>{
           process.exit(main);
+          },3000)
           //  process.kill(process.pid);
         }
       }
