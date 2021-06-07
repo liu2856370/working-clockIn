@@ -11,6 +11,8 @@ const {
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
+// const USER_NAME = "15557881220";
+// const PASS_WORD = "Zr!@#123";
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -70,7 +72,7 @@ const main = async () => {
       global.reloadTimer = setInterval(() => {
         page.reload();
         console.log("刷新浏览器");
-      }, 120000);
+      }, (Math.random() * 3 + 5).toFixed(2) * 60 * 1000);
     }
     await page.setRequestInterception(true);
     page.on("request", (request) => {
@@ -165,10 +167,6 @@ const main = async () => {
                 });
               }
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
-            send({
-              title: "签到提醒！！！",
-              content: `<h3 style="color:red">工作日请及时签到！</h3>`,
-            });
           }
         } else {
           console.log("今日已正常签到，关闭脚本！");
@@ -312,7 +310,7 @@ const start = async () => {
       title: "节假日确认打卡",
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
-//     schedule.scheduleJob(+dayjs()+10*60*1000,()=>{console.log('测试定时任务！')})
+    //     schedule.scheduleJob(+dayjs()+10*60*1000,()=>{console.log('测试定时任务！')})
   } else {
     console.log("今天是工作日，启动打卡脚本！");
     main();
