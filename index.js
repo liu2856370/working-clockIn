@@ -24,6 +24,16 @@ const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
 };
+console.log(
+  "现在的时间",
+  dayjs(reviseTime(+dayjs())).format("YYYY-MM-DD HH:mm:ss")
+);
+console.log(
+  "北京时间五点",
+  dayjs(reviseTime(+dayjs().hour(17).minute(00))).format("YYYY-MM-DD HH:mm:ss")
+);
+console.log(reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00)));
+return;
 const main = async () => {
   const browser = await puppeteer.launch({
     //启动
