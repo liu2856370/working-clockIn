@@ -137,7 +137,6 @@ const main = async () => {
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
         const res = await response.json();
-        console.log("暂未签退");
         let checkInTime =
           reviseTime(res?.beginDate) || reviseTime(+dayjs().hour(9).minute(55));
         // 如果没有签到，每30秒发送一次提醒
@@ -174,7 +173,7 @@ const main = async () => {
           }
         } else {
           if (reviseTime(+dayjs()) < reviseTime(+dayjs().hour(17).minute(00))) {
-            send({
+            await send({
               title: "签到成功",
               content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
                 checkInTime
@@ -183,14 +182,15 @@ const main = async () => {
               )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
             });
             console.log("今日已正常签到，关闭脚本！");
-
-            clearInterval(global.checkOutRemindTimer);
-            clearInterval(global.checkInRemindTimer);
-            clearInterval(global.reloadTimer);
-            global.checkOutRemindJob?.cancel();
-            global.checkInJob?.cancel();
-            global.checkOutJob?.cancel();
-            process.exit(main);
+            // clearInterval(global.checkOutRemindTimer);
+            // clearInterval(global.checkInRemindTimer);
+            // clearInterval(global.reloadTimer);
+            // global.checkOutRemindJob?.cancel();
+            // global.checkInJob?.cancel();
+            // global.checkOutJob?.cancel();
+            setTimeout(() => {
+              process.exit(main);
+            }, 3000);
           } else {
             clearInterval(global.checkInRemindTimer);
           }
