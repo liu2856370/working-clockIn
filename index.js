@@ -129,7 +129,9 @@ const main = async () => {
           clearInterval(global.checkOutRemindTimer);
           clearInterval(global.checkInRemindTimer);
           clearInterval(global.reloadTimer);
-          process.exit(main);
+          setTimeout(() => {
+            process.exit(main);
+          }, 3000);
         }
       }
       if (
@@ -172,7 +174,7 @@ const main = async () => {
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
           }
           return;
-        } else {
+        } else if (res.beginDate) {
           if (reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)) {
             await send({
               title: "打卡状态",
@@ -194,7 +196,9 @@ const main = async () => {
             global.checkOutRemindJob?.cancel();
             global.checkInJob?.cancel();
             global.checkOutJob?.cancel();
-            process.exit(main);
+            setTimeout(() => {
+              process.exit(main);
+            }, 3000);
           } else {
             clearInterval(global.checkInRemindTimer);
           }
@@ -217,7 +221,9 @@ const main = async () => {
             !res.workingTime &&
             reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
           ) {
-            process.exit(main);
+            setTimeout(() => {
+              process.exit(main);
+            }, 3000);
           }
           console.log(
             "签到时间",
@@ -304,8 +310,9 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
-          process.exit(main);
-          //  process.kill(process.pid);
+          setTimeout(() => {
+            process.exit(main);
+          }, 3000);
         }
       }
       return response;
