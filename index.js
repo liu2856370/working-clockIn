@@ -26,6 +26,9 @@ const reviseTime = (time) => {
 };
 
 const main = async () => {
+  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
+  console.log(browser2)
+  // 关闭 Chromium
   const browser = await puppeteer.launch({
     //启动
     headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
