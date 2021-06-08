@@ -174,37 +174,37 @@ const main = async () => {
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
           }
           return;
-        } else if (res.beginDate) {
-          if (reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)) {
-            await send({
-              title: "打卡状态",
-              content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
-                checkInTime
-              ).format(
-                "YYYY-MM-DD hh:mm:ss"
-              )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
-            });
-            console.log(
-              "签到时间",
-              checkInTime,
-              dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
-            );
-            console.log("今日已正常签到，关闭脚本！");
-            clearInterval(global.checkOutRemindTimer);
-            clearInterval(global.checkInRemindTimer);
-            clearInterval(global.reloadTimer);
-            global.checkOutRemindJob?.cancel();
-            global.checkInJob?.cancel();
-            global.checkOutJob?.cancel();
-            setTimeout(() => {
-              process.exit(main);
-            }, 3000);
-          } else {
-            clearInterval(global.checkInRemindTimer);
-          }
+        } else if (
+          res.beginDate &&
+          reviseTime(+dayjs()) < +dayjs().hour(10).minute(00)
+        ) {
+          await send({
+            title: "打卡状态",
+            content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
+              checkInTime
+            ).format(
+              "YYYY-MM-DD hh:mm:ss"
+            )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
+          });
+          console.log(
+            "签到时间",
+            checkInTime,
+            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+          );
+          console.log("今日已正常签到，关闭脚本！");
+          clearInterval(global.checkOutRemindTimer);
+          clearInterval(global.checkInRemindTimer);
+          clearInterval(global.reloadTimer);
+          global.checkOutRemindJob?.cancel();
+          global.checkInJob?.cancel();
+          global.checkOutJob?.cancel();
+          setTimeout(() => {
+            process.exit(main);
+          }, 3000);
           return;
         }
         if (res.beginDate && res.workingTime < 30600000) {
+          if (reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)) return;
           // 未正常签退
           let checkOutRemindTime = +dayjs(
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
