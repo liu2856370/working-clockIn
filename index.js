@@ -73,7 +73,7 @@ const main = async () => {
       global.reloadTimer = setInterval(() => {
         page.reload();
         console.log("刷新浏览器");
-      }, (Math.random() * 3).toFixed(2) * 60 * 1000);
+      }, (Math.random() * 3 + 5).toFixed(2) * 60 * 1000);
     }
     await page.setRequestInterception(true);
     page.on("request", (request) => {
@@ -150,8 +150,8 @@ const main = async () => {
             );
           }
           // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
-          if (dayjs().hour() + 8 == 9 && dayjs().hour() + 8 >= 50) {
-            console.log("启动定时签到 Job");
+          if (dayjs().hour() + 8 == 9 && dayjs().minute() >= 50) {
+            console.log("启动定时签到");
 
             global.checkInJob = null;
             clockIn();
@@ -171,6 +171,7 @@ const main = async () => {
               }
             }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
           }
+          return;
         } else {
           if (reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)) {
             await send({
@@ -178,13 +179,13 @@ const main = async () => {
               content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
                 checkInTime
               ).format(
-                "YYYY-MM-DD HH:mm:ss"
+                "YYYY-MM-DD hh:mm:ss"
               )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
             });
             console.log(
               "签到时间",
               checkInTime,
-              dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
+              dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
             );
             console.log("今日已正常签到，关闭脚本！");
             clearInterval(global.checkOutRemindTimer);
@@ -197,9 +198,9 @@ const main = async () => {
           } else {
             clearInterval(global.checkInRemindTimer);
           }
+          return;
         }
-        console.log(res.workingTime)
-        if (res.workingTime < 30600000) {
+        if (res.beginDate && res.workingTime < 30600000) {
           // 未正常签退
           let checkOutRemindTime = +dayjs(
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
@@ -208,7 +209,6 @@ const main = async () => {
           while (randomWorkTime < 8.5) {
             randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
           }
-          console.log("随机工作时长", randomWorkTime);
           let expectCheckOutTime = +dayjs(
             checkInTime + parseInt(randomWorkTime * 3600000)
           );
@@ -222,7 +222,7 @@ const main = async () => {
           console.log(
             "签到时间",
             checkInTime,
-            dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
+            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
           );
           const checkOutRemind = () => {
             // 签到提醒，如果没有签到，在时间段内提醒
@@ -257,7 +257,7 @@ const main = async () => {
           console.log(
             "签退提醒时间",
             checkOutRemindTime,
-            dayjs(checkOutRemindTime).format("YYYY-MM-DD HH:mm:ss")
+            dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
           );
 
           if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
@@ -269,7 +269,7 @@ const main = async () => {
           console.log(
             "预计签退时间",
             expectCheckOutTime,
-            dayjs(expectCheckOutTime).format("YYYY-MM-DD HH:mm:ss")
+            dayjs(expectCheckOutTime).format("YYYY-MM-DD hh:mm:ss")
           );
           // 启动定时签退任务
           if (!global.checkOutJob) {
@@ -288,12 +288,12 @@ const main = async () => {
           }
 
           clearInterval(global.reloadTimer);
-        } else if (res.workingTime > 30600000) {
+        } else if (res.beginDate && res.workingTime > 30600000) {
           send({
-            title: "打卡提示",
+            title: "签退成功",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
-            ).format("YYYY-MM-DD HH:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
+            ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
           });
           console.log("今日已正常签退，关闭脚本！");
 
@@ -304,9 +304,7 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
-          setTimeout(()=>{
           process.exit(main);
-          },3000)
           //  process.kill(process.pid);
         }
       }
@@ -343,4 +341,4 @@ const start = async () => {
     main();
   }
 };
-start(); 
+start();
