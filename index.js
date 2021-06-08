@@ -26,6 +26,7 @@ const reviseTime = (time) => {
 };
 
 const main = async () => {
+    console.log(process.env.browser)
 //  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
  // console.log(browser2)
   // 关闭 Chromium
