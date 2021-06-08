@@ -117,7 +117,7 @@ const main = async () => {
           console.log("脚本自动签退成功！");
 
           send({
-            title: "签退成功",
+            title: "打卡状态",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：已签退</p>`,
           });
           await setTimeout(async () => {
@@ -183,13 +183,13 @@ const main = async () => {
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
               checkInTime
             ).format(
-              "YYYY-MM-DD hh:mm:ss"
+              "YYYY-MM-DD HH:mm:ss"
             )}</p><br /><p>当前状态：已签到（<span style="color:red">未签退</span>）</p>`,
           });
           console.log(
             "签到时间",
             checkInTime,
-            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
           );
           console.log("今日已正常签到，关闭脚本！");
           clearInterval(global.checkOutRemindTimer);
@@ -228,7 +228,7 @@ const main = async () => {
           console.log(
             "签到时间",
             checkInTime,
-            dayjs(checkInTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")
           );
           const checkOutRemind = () => {
             // 签到提醒，如果没有签到，在时间段内提醒
@@ -236,16 +236,17 @@ const main = async () => {
               let title = "签退提醒！！！";
               let content = `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${dayjs(
                 checkInTime
-              ).format("YYYY-MM-DD hh:mm:ss")}</p>`;
+              ).format("YYYY-MM-DD HH:mm:ss")}</p>`;
               global.checkOutRemindTimer = setInterval(() => {
-                console.log("开始签退提醒！");
                 if (res.workingTime > 0) {
                   title = "早退提醒！！！";
                   content = `<h3 style="color:red">检测到早退，请及时处理</h3><p>未处理将会自动覆盖早退时间</p>`;
                 }
                 send({ title, content });
+                console.log("开始发送签退提醒！");
               }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
               send({ title, content });
+              console.log("开始发送签退提醒！");
             }
           };
           if (!global.checkOutRemindJob) {
@@ -263,7 +264,7 @@ const main = async () => {
           console.log(
             "签退提醒时间",
             checkOutRemindTime,
-            dayjs(checkOutRemindTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(checkOutRemindTime).format("YYYY-MM-DD HH:mm:ss")
           );
 
           if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
@@ -275,7 +276,7 @@ const main = async () => {
           console.log(
             "预计签退时间",
             expectCheckOutTime,
-            dayjs(expectCheckOutTime).format("YYYY-MM-DD hh:mm:ss")
+            dayjs(expectCheckOutTime).format("YYYY-MM-DD HH:mm:ss")
           );
           // 启动定时签退任务
           if (!global.checkOutJob) {
@@ -299,7 +300,7 @@ const main = async () => {
             title: "签退成功",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
-            ).format("YYYY-MM-DD hh:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
+            ).format("YYYY-MM-DD HH:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
           });
           console.log("今日已正常签退，关闭脚本！");
 
