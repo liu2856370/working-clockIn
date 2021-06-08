@@ -26,7 +26,7 @@ const reviseTime = (time) => {
 };
 
 const main = async () => {
-    console.log(process.env.browser)
+//    console.log(process.env.browser)
 //  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
  // console.log(browser2)
   // 关闭 Chromium
@@ -34,11 +34,11 @@ const main = async () => {
     //启动
     headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
-  const browserWSEndpoint = browser.wsEndpoint();
+ // const browserWSEndpoint = browser.wsEndpoint();
 //  console.log(browserWSEndpoint)
-  process.env.browser=browserWSEndpoint
-  console.log(process.env.browser)
-  return
+//  process.env.browser=browserWSEndpoint
+//  console.log(process.env.browser)
+ // return
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
   try {
