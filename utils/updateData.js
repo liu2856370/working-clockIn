@@ -13,7 +13,7 @@ const updateData = (key, val) => {
       console.log(result);
       result[key] = val;
       fs.writeFile(
-        path.join(__dirname, "./data.json"),
+        path.join(__dirname, "./data1.json"),
         JSON.stringify(result),
         "utf8",
         (err,data) => {
