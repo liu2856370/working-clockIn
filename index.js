@@ -393,10 +393,8 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
-console.log(customData);
-    
     updateData("running", true);
-    console.log(customData);
+    return
     main();
   }
 };
