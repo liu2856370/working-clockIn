@@ -10,8 +10,6 @@ const {
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
-const updateData = require("./utils/updateData.js");
-const customData = require("./utils/data.json");
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -109,8 +107,6 @@ const main = async () => {
         const res = await response.json();
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
-          updateData("checkInDate", dayjs().date());
-
           send({
             title: "签到成功",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：未签退</p>`,
@@ -120,7 +116,6 @@ const main = async () => {
         }
         if (res.checkMap.message.includes("签退成功")) {
           console.log("脚本自动签退成功！");
-          updateData("checkOutDate", dayjs().date());
           send({
             title: "打卡状态",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>当前状态：已签退</p>`,
@@ -134,8 +129,6 @@ const main = async () => {
           clearInterval(global.checkOutRemindTimer);
           clearInterval(global.checkInRemindTimer);
           clearInterval(global.reloadTimer);
-          updateData("running", false);
-
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -193,8 +186,6 @@ const main = async () => {
           res.beginDate &&
           reviseTime(+dayjs()) < +dayjs().hour(10).minute(00)
         ) {
-          updateData("checkInDate", dayjs().date());
-
           await send({
             title: "打卡状态",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
@@ -215,8 +206,6 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
-          updateData("running", false);
-
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -240,8 +229,6 @@ const main = async () => {
             !res.workingTime &&
             reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
           ) {
-            updateData("running", false);
-
             setTimeout(() => {
               process.exit(main);
             }, 3000);
@@ -265,7 +252,7 @@ const main = async () => {
                 }
                 send({ title, content });
                 console.log("开始发送签退提醒！");
-              }, (CHECK_OUT_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+              }, (CHECK_OUT_CONFIG.REMIND_INTERVAL) * 60 * 1000);
               send({ title, content });
               console.log("开始发送签退提醒！");
             }
@@ -315,7 +302,6 @@ const main = async () => {
             clockIn();
           }
         } else if (res.beginDate && res.workingTime > 30600000) {
-          updateData("checkOutDate", dayjs().date());
 
           send({
             title: "签退成功",
@@ -332,7 +318,6 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
-          updateData("running", false);
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -352,24 +337,8 @@ const main = async () => {
   }
 };
 const start = async () => {
-  // 当天已签退直接退出
-  if (customData.checkOutDate == dayjs().date()) {
-    console.log("customData: 今天已签退，退出脚本");
-    return;
-  }
-  // 十点前已签到直接退出
-  if (
-    reviseTime(+dayjs()) < +dayjs().hour(10).minute(00) &&
-    customData.checkInDate == dayjs().date()
-  ) {
-    console.log("customData: 今天已签到，退出脚本");
-    return;
-  }
-  // 脚本正在运行直接退出
-  if (customData.running) {
-    console.log("customData: 正在运行，退出脚本");
-    return;
-  }
+
+
   // 10点到17点之间不运行
   if (
     reviseTime(+dayjs()) > +dayjs().hour(10).minute(00) &&
@@ -393,11 +362,7 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
-    updateData("running", true);
-    console.log(process.env)
 
-     
-    return
     main();
   }
 };
