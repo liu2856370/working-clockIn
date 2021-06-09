@@ -108,7 +108,7 @@ const main = async () => {
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
           send({
-            title: "签到成功",
+            title: "自动签到结果：签到成功！",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：未签退</p>`,
           });
           clearInterval(global.checkInRemindTimer);
@@ -117,7 +117,7 @@ const main = async () => {
         if (res.checkMap.message.includes("签退成功")) {
           console.log("脚本自动签退成功！");
           send({
-            title: "打卡状态",
+            title: "自动签退结果：签退成功！",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>当前状态：已签退</p>`,
           });
           await setTimeout(async () => {
@@ -170,8 +170,8 @@ const main = async () => {
               ) {
                 console.log("发送签到提醒！");
                 send({
-                  title: "签到提醒！！！",
-                  content: `<h3 style="color:red">工作日请及时签到！</h3>`,
+                  title: "签到提醒：请及时签到！！！",
+                  content: `<h3 style="color:red">今天是工作日，请及时签到！</h3>`,
                 });
               }
             };
@@ -187,7 +187,7 @@ const main = async () => {
           reviseTime(+dayjs()) < +dayjs().hour(10).minute(00)
         ) {
           await send({
-            title: "打卡状态",
+            title: "打卡状态：今日已签到！",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
               checkInTime
             ).format(
@@ -241,13 +241,13 @@ const main = async () => {
           const checkOutRemind = () => {
             // 签到提醒，如果没有签到，在时间段内提醒
             if (CHECK_OUT_CONFIG.ENABLE_REMIND) {
-              let title = "签退提醒！！！";
+              let title = "签退提醒：可以签退了！";
               let content = `<h3 style="color:red">今日工作时长已满8小时，可以签退了</h3><p>签到时间为${dayjs(
                 checkInTime
               ).format("YYYY-MM-DD HH:mm:ss")}</p>`;
               global.checkOutRemindTimer = setInterval(() => {
                 if (res.workingTime > 0) {
-                  title = "早退提醒！！！";
+                  title = "早退提醒：检测到早退！";
                   content = `<h3 style="color:red">检测到早退，请及时处理</h3><p>未处理将会自动覆盖早退时间</p>`;
                 }
                 send({ title, content });
@@ -304,7 +304,7 @@ const main = async () => {
         } else if (res.beginDate && res.workingTime > 30600000) {
 
           send({
-            title: "打卡状态",
+            title: "打卡状态：今日已签退",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
             ).format("YYYY-MM-DD HH:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
@@ -329,7 +329,7 @@ const main = async () => {
   } catch (err) {
     console.log("签到过程出错了!");
     send({
-      title: "签到过程错误",
+      title: "错误提示：脚本执行出错！",
       content: "签到脚本执行错误，请查看 github action",
     });
     // await browser.close();
