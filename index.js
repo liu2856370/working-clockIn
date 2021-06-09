@@ -12,7 +12,6 @@ const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
 const updateData = require("./utils/updateData.js");
 const customData = require("./utils/data.json");
-console.log(customData);
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -394,7 +393,10 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
+console.log(customData);
+    
     updateData("running", true);
+    console.log(customData);
     main();
   }
 };
