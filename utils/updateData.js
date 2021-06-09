@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-
+fs.readFile(path.join(__dirname, "./data.json"), "utf8", function (err, data) {
+  console.log(data);
+});
 const updateData = (key, val) => {
   fs.readFile(
     path.join(__dirname, "./data.json"),
@@ -22,4 +24,7 @@ const updateData = (key, val) => {
     }
   );
 };
+fs.readFile(path.join(__dirname, "./data.json"), "utf8", function (err, data) {
+  console.log(data);
+});
 module.exports = updateData;
