@@ -394,6 +394,7 @@ const start = async () => {
   } else {
     console.log("今天是工作日，启动打卡脚本！");
     updateData("running", true);
+    console.log(process.env)
     return
     main();
   }
