@@ -16,8 +16,10 @@ const updateData = (key, val) => {
         path.join(__dirname, "./data.json"),
         JSON.stringify(result),
         "utf8",
-        (err) => {
+        (err,data) => {
           console.log(err)
+                    console.log(data);
+
           if (err) throw err;
           console.log("success done");
         }
