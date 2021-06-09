@@ -30,4 +30,11 @@ const updateData = (key, val) => {
 fs.readFile(path.join(__dirname, "./data.json"), "utf8", function (err, data) {
   console.log(data);
 });
+fs.appendFile("test.txt", "人间失格", 'utf-8', function(err) {
+    if(err) {
+        console.log(err);
+        return false;
+    }
+    console.log('写入成功!!!');
+});
 module.exports = updateData;
