@@ -373,11 +373,9 @@ const start = async () => {
   }
   // 10点到17点之间不运行
   if (
-    reviseTime(+dayjs()) > +dayjs().hour(10).minute(00) ||
+    reviseTime(+dayjs()) > +dayjs().hour(10).minute(00) &&
     reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
   ) {
-    console.log(reviseTime(+dayjs()) > +dayjs().hour(10).minute(00))
-    console.log(reviseTime(+dayjs()) < +dayjs().hour(17).minute(00))
     console.log("10点到17点之间不运行脚本");
     return;
   }
