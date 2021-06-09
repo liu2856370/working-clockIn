@@ -2,8 +2,9 @@ const puppeteer = require("puppeteer");
 var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
-require("./utils/format");
 const dayjs = require("dayjs");
+
+return;
 const {
   CHECK_IN_CONFIG,
   CHECK_OUT_CONFIG,
@@ -11,7 +12,9 @@ const {
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
-
+const updateData = require("./utils/updateData.js");
+const customData = require("./utils/data.json");
+console.log(customData);
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -19,26 +22,20 @@ global.checkOutRemindJob = null; // 提醒签退
 global.checkOutRemindTimer = null; // 提醒签退定时器
 global.checkInRemindTimer = null; // 提醒签到定时器
 global.reloadTimer = null; // 刷新浏览器定时器
-
 const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
 };
 
 const main = async () => {
-//    console.log(process.env.browser)
-//  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
- // console.log(browser2)
+  //    console.log(process.env.browser)
+  //  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
+  // console.log(browser2)
   // 关闭 Chromium
   const browser = await puppeteer.launch({
     //启动
     headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
   });
- // const browserWSEndpoint = browser.wsEndpoint();
-//  console.log(browserWSEndpoint)
-//  process.env.browser=browserWSEndpoint
-//  console.log(process.env.browser)
- // return
   const page = await browser.newPage(); // 打开一个页面, page就是后序将要操作的
   page.setDefaultNavigationTimeout(120000); // 设置页面的打开超时时间, 因为我要打卡的是学校的垃圾服务器, 超时时间设置了2分钟
   try {
@@ -115,6 +112,8 @@ const main = async () => {
         const res = await response.json();
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
+          updateData("checkInDate", dayjs().date());
+
           send({
             title: "签到成功",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：未签退</p>`,
@@ -124,10 +123,10 @@ const main = async () => {
         }
         if (res.checkMap.message.includes("签退成功")) {
           console.log("脚本自动签退成功！");
-
+          updateData("checkOutDate", dayjs().date());
           send({
             title: "打卡状态",
-            content: `<h3 style="color:red">今日已签到！</h3><br /><p>当前状态：已签退</p>`,
+            content: `<h3 style="color:red">今日已签退！</h3><br /><p>当前状态：已签退</p>`,
           });
           await setTimeout(async () => {
             await browser.close(); //关闭浏览器结束、
@@ -138,6 +137,8 @@ const main = async () => {
           clearInterval(global.checkOutRemindTimer);
           clearInterval(global.checkInRemindTimer);
           clearInterval(global.reloadTimer);
+          updateData("running", false);
+
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -152,41 +153,51 @@ const main = async () => {
           reviseTime(res?.beginDate) || +dayjs().hour(9).minute(55);
         // 如果没有签到，每30秒发送一次提醒
         if (!res.beginDate) {
+          const expectCheckInTime = +dayjs()
+            .hour(9)
+            .minute(CHECK_IN_CONFIG.LATEST_TIME);
           // 启动定时任务
           if (!global.checkInJob) {
             console.log("启动定时签到 Job");
             global.checkInJob = schedule.scheduleJob(
-              `00 ${CHECK_IN_CONFIG.LATEST_TIME || 48} 9 * * *`,
+              +expectCheckInTime,
               clockIn
             );
           }
           // 容错处理，如果启动时间已经超过了最后打卡时间，直接执行
           if (dayjs().hour() + 8 == 9 && dayjs().minute() >= 50) {
-            console.log("启动定时签到");
-
+            console.log("定时签到时间已过，开始签到");
             global.checkInJob = null;
             clockIn();
           }
           // 签到提醒，如果没有签到，在时间段内提醒
           if (!global.checkInRemindTimer && CHECK_IN_CONFIG.ENABLE_REMIND) {
-            global.checkInRemindTimer = setInterval(() => {
+            const sendCheckInRemind = () => {
               if (dayjs().hour() + 8 != 9) return;
               if (
-                dayjs().minute() >= (CHECK_IN_CONFIG.START_REMIND_TIME || 30) &&
-                dayjs().minute() <= (CHECK_IN_CONFIG.LATEST_TIME || 48)
+                dayjs().minute() >= CHECK_IN_CONFIG.START_REMIND_TIME &&
+                dayjs().minute() <= CHECK_IN_CONFIG.LATEST_TIME
               ) {
+                console.log("发送签到提醒！");
                 send({
                   title: "签到提醒！！！",
                   content: `<h3 style="color:red">工作日请及时签到！</h3>`,
                 });
               }
-            }, (CHECK_IN_CONFIG.REMIND_INTERVAL || 300) * 60 * 1000);
+            };
+            global.checkInRemindTimer = setInterval(
+              sendCheckInRemind,
+              CHECK_IN_CONFIG.REMIND_INTERVAL * 60 * 1000
+            );
+            sendCheckInRemind();
           }
           return;
         } else if (
           res.beginDate &&
           reviseTime(+dayjs()) < +dayjs().hour(10).minute(00)
         ) {
+          updateData("checkInDate", dayjs().date());
+
           await send({
             title: "打卡状态",
             content: `<h3 style="color:red">今日已签到！</h3><br /><p>签到时间：${dayjs(
@@ -207,6 +218,8 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
+          updateData("running", false);
+
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -230,6 +243,8 @@ const main = async () => {
             !res.workingTime &&
             reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
           ) {
+            updateData("running", false);
+
             setTimeout(() => {
               process.exit(main);
             }, 3000);
@@ -302,8 +317,9 @@ const main = async () => {
             global.checkOutJob?.cancel();
             clockIn();
           }
-
         } else if (res.beginDate && res.workingTime > 30600000) {
+          updateData("checkOutDate", dayjs().date());
+
           send({
             title: "签退成功",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
@@ -319,6 +335,7 @@ const main = async () => {
           global.checkOutRemindJob?.cancel();
           global.checkInJob?.cancel();
           global.checkOutJob?.cancel();
+          updateData("running", false);
           setTimeout(() => {
             process.exit(main);
           }, 3000);
@@ -338,6 +355,32 @@ const main = async () => {
   }
 };
 const start = async () => {
+  // 当天已签退直接退出
+  if (customData.checkOutDate == dayjs().date()) {
+    console.log("customData: 今天已签退，退出脚本");
+    return;
+  }
+  // 十点前已签到直接退出
+  if (
+    reviseTime(+dayjs()) < +dayjs().hour(10).minute(00) &&
+    customData.checkInDate == dayjs().date()
+  ) {
+    console.log("customData: 今天已签到，退出脚本");
+    return;
+  }
+  // 脚本正在运行直接退出
+  if (customData.running) {
+    console.log("customData: 正在运行，退出脚本");
+    return;
+  }
+  // 10点到17点之间不运行
+  if (
+    reviseTime(+dayjs()) > +dayjs().hour(10).minute(00) ||
+    reviseTime(+dayjs()) < +dayjs().hour(17).minute(00)
+  ) {
+    console.log("10点到17点之间不运行脚本");
+    return;
+  }
   // 调用免费查询是否为工作日的 API
   const res = await axios.get(
     `https://api.apihubs.cn/holiday/get?field=workday&date=${dayjs(
@@ -351,10 +394,10 @@ const start = async () => {
       title: "节假日确认打卡",
       content: `<h3 style="color:red">检测到今天为节假日，无需打卡！</h3><a href="https://www.eteams.cn/attend">点击链接手动打卡</a>`,
     });
-    //     schedule.scheduleJob(+dayjs()+10*60*1000,()=>{console.log('测试定时任务！')})
   } else {
     console.log("今天是工作日，启动打卡脚本！");
+    updateData("running", true);
     main();
   }
 };
-start(); 
+start();
