@@ -304,7 +304,7 @@ const main = async () => {
         } else if (res.beginDate && res.workingTime > 30600000) {
 
           send({
-            title: "签退成功",
+            title: "打卡状态",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
               checkInTime + res.workingTime
             ).format("YYYY-MM-DD HH:mm:ss")}</p><br /><p>当前状态：已签退</p>`,
