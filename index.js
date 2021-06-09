@@ -395,6 +395,7 @@ const start = async () => {
     console.log("今天是工作日，启动打卡脚本！");
     updateData("running", true);
     console.log(process.env)
+    process.env.HOME_RUNNING='1'
     return
     main();
   }
