@@ -3,8 +3,6 @@ var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
 const dayjs = require("dayjs");
-
-return;
 const {
   CHECK_IN_CONFIG,
   CHECK_OUT_CONFIG,
