@@ -17,6 +17,7 @@ const updateData = (key, val) => {
         JSON.stringify(result),
         "utf8",
         (err) => {
+          console.log(err)
           if (err) throw err;
           console.log("success done");
         }
