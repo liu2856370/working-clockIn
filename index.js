@@ -339,6 +339,7 @@ const main = async () => {
   }
 };
 const start = async () => {
+    setTimeout(() => {}, 10000000);
 
 
   // 10点到17点之间不运行
@@ -364,8 +365,6 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
-    setTimeout(() => {}, 10000000);
-
     main();
   }
 };
