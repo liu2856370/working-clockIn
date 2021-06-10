@@ -105,6 +105,7 @@ const main = async () => {
         )
       ) {
         const res = await response.json();
+        console.log(res)
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
           send({
@@ -139,6 +140,7 @@ const main = async () => {
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
         const res = await response?.json();
+        console.log(res)
         let checkInTime =
           reviseTime(res?.beginDate) || +dayjs().hour(9).minute(55);
         // 如果没有签到，每30秒发送一次提醒
@@ -362,6 +364,7 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
+    setTimeout(() => {}, 10000000);
 
     main();
   }
