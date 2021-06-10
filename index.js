@@ -313,7 +313,6 @@ const main = async () => {
           }, 3000);
         }
       }
-      return response;
     });
     page.reload();
   } catch (err) {
