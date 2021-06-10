@@ -9,8 +9,10 @@ const {
   CLOCK_IN_IP,
   WORING_TIME,
 } = require("./config.js");
-const USER_NAME = process.env.USER_NAME;
-const PASS_WORD = process.env.PASS_WORD;
+// const USER_NAME = process.env.USER_NAME;
+// const PASS_WORD = process.env.PASS_WORD;
+const USER_NAME = "15557881220";
+const PASS_WORD = "Zr!@#123";
 
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
@@ -19,6 +21,8 @@ global.checkOutRemindJob = null; // 提醒签退
 global.checkOutRemindTimer = null; // 提醒签退定时器
 global.checkInRemindTimer = null; // 提醒签到定时器
 global.reloadTimer = null; // 刷新浏览器定时器
+global.leaveEarly = false; // 是否早退
+
 const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
@@ -208,10 +212,10 @@ const main = async () => {
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
           );
           let randomWorkTime = 0;
-          
+
           randomWorkTime = (Math.random() * -1 + WORING_TIME,
-            +1 + 0.75).toFixed(2);
-          
+          +1 + 0.75).toFixed(2);
+
           let expectCheckOutTime = reviseTime(
             +dayjs(checkInTime + parseInt(randomWorkTime * 3600000))
           );
@@ -238,8 +242,12 @@ const main = async () => {
               ).format("YYYY-MM-DD HH:mm:ss")}</p>`;
               global.checkOutRemindTimer = setInterval(() => {
                 if (res.workingTime > 0) {
+                  global.leaveEarly = true;
                   title = "早退提醒：检测到早退！";
-                  content = `<h3 style="color:red">检测到早退，请及时处理</h3><p>未处理将会自动覆盖早退时间</p>`;
+                  content = `
+                    <h3 style="color:red">检测到早退，请及时处理</h3><br />
+                    <p>如未手动处理，将会在19:00脚本自动签退，覆盖早退时间</p>
+                    `;
                 }
                 send({ title, content });
                 console.log("开始发送签退提醒！");
@@ -266,11 +274,16 @@ const main = async () => {
             dayjs(checkOutRemindTime).format("YYYY-MM-DD HH:mm:ss")
           );
 
+          // 设置自定义签退时间
           if (CHECK_OUT_CONFIG.LATEST_TIME.enable) {
             console.log("开启自动签退 Job！");
             let { hours, minutes } = CHECK_OUT_CONFIG.LATEST_TIME;
-
             expectCheckOutTime = +dayjs().hour(hours).minute(minutes);
+          }
+
+          // 如果早退，固定七点签退
+          if (res.workingTime > 0) {
+            expectCheckOutTime = +dayjs().hour(19).minute(0);
           }
           console.log(
             "预计签退时间",
@@ -280,7 +293,6 @@ const main = async () => {
           // 启动定时签退任务
           if (!global.checkOutJob) {
             console.log("启动定时签退 Job！");
-
             global.checkOutJob = schedule.scheduleJob(
               expectCheckOutTime,
               clockIn
