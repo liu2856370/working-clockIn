@@ -7,6 +7,7 @@ const {
   CHECK_IN_CONFIG,
   CHECK_OUT_CONFIG,
   CLOCK_IN_IP,
+  WORING_TIME,
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
@@ -21,7 +22,6 @@ const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
 };
-
 const main = async () => {
   //    console.log(process.env.browser)
   //  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
@@ -105,7 +105,6 @@ const main = async () => {
         )
       ) {
         const res = await response.json();
-        console.log(res)
         if (res.checkMap.message.includes("签到成功")) {
           console.log("脚本自动签到成功！");
           send({
@@ -140,7 +139,6 @@ const main = async () => {
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
         const res = await response?.json();
-        console.log(res)
         let checkInTime =
           reviseTime(res?.beginDate) || +dayjs().hour(9).minute(55);
         // 如果没有签到，每30秒发送一次提醒
@@ -220,9 +218,10 @@ const main = async () => {
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
           );
           let randomWorkTime = 0;
-          while (randomWorkTime < 8.5) {
-            randomWorkTime = (Math.random() * -1 + 7.5 + 1 + 0.75).toFixed(2);
-          }
+          // while (randomWorkTime < 8.5) {
+          randomWorkTime = (Math.random() * -1 + WORING_TIME,
+          +1 + 0.75).toFixed(2);
+          // }
           let expectCheckOutTime = +dayjs(
             checkInTime + parseInt(randomWorkTime * 3600000)
           );
@@ -254,7 +253,7 @@ const main = async () => {
                 }
                 send({ title, content });
                 console.log("开始发送签退提醒！");
-              }, (CHECK_OUT_CONFIG.REMIND_INTERVAL) * 60 * 1000);
+              }, CHECK_OUT_CONFIG.REMIND_INTERVAL * 60 * 1000);
               send({ title, content });
               console.log("开始发送签退提醒！");
             }
@@ -304,7 +303,6 @@ const main = async () => {
             clockIn();
           }
         } else if (res.beginDate && res.workingTime > 30600000) {
-
           send({
             title: "打卡状态：今日已签退",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>签退时间：${dayjs(
@@ -339,7 +337,6 @@ const main = async () => {
   }
 };
 const start = async () => {
-
   // 10点到17点之间不运行
   if (
     reviseTime(+dayjs()) > +dayjs().hour(10).minute(00) &&
@@ -363,6 +360,7 @@ const start = async () => {
     });
   } else {
     console.log("今天是工作日，启动打卡脚本！");
+    setTimeout(() => {}, 10000000);
     main();
   }
 };
