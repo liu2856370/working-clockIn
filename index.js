@@ -208,10 +208,10 @@ const main = async () => {
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
           );
           let randomWorkTime = 0;
-          while (randomWorkTime < 8.5) {
-            randomWorkTime = (Math.random() * -1 + WORING_TIME,
+          
+          randomWorkTime = (Math.random() * -1 + WORING_TIME,
             +1 + 0.75).toFixed(2);
-          }
+          
           let expectCheckOutTime = reviseTime(
             +dayjs(checkInTime + parseInt(randomWorkTime * 3600000))
           );
