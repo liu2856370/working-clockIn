@@ -11,6 +11,7 @@ const {
 } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
+
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -21,12 +22,9 @@ global.reloadTimer = null; // 刷新浏览器定时器
 const reviseTime = (time) => {
   if (!time) return null;
   return +time + 28800000;
+  // return time;
 };
 const main = async () => {
-  //    console.log(process.env.browser)
-  //  const browser2 = await puppeteer.connect({browserWSEndpoint:process.env.browser});
-  // console.log(browser2)
-  // 关闭 Chromium
   const browser = await puppeteer.launch({
     //启动
     headless: true, // 是否以无头模式运行, 默认ture. 无头就是不打开Chrome图形界面, 更快.
@@ -53,21 +51,25 @@ const main = async () => {
       await page.evaluate(async () => {
         console.log("进入打卡函数");
         const today = moment().format("YYYY-MM-DD");
-        // 未签到
-        if ($(".j_check_inOrOut")[0].innerText == "签到") {
-          $(".j_check_inOrOut").click();
-        } else if (
-          document.querySelector(
-            `.j_miss-tab div.content-info[attendday='${today}']`
-          ) ||
-          document.querySelector(
-            `.j_leaveEarly-tab div.content-info[attendday='${today}']`
-          )
-        ) {
-          // 未签退
-          // console.log("签退");
-          $(".j_check_inOrOut").click();
-        }
+        console.log(today);
+        setTimeout(() => {
+          // 未签到
+          if (document.querySelector(".j_check_inOrOut").innerText == "签到") {
+            console.log("签到");
+            document.querySelector(".j_check_inOrOut").click();
+          } else if (
+            document.querySelector(
+              `.j_miss-tab div.content-info[attendday='${today}']`
+            ) ||
+            document.querySelector(
+              `.j_leaveEarly-tab div.content-info[attendday='${today}']`
+            )
+          ) {
+            // 未签退
+            console.log("签退");
+            document.querySelector(".j_check_inOrOut").click();
+          }
+        }, 3000);
       });
     };
     if (!global.reloadTimer) {
@@ -120,18 +122,6 @@ const main = async () => {
             title: "自动签退结果：签退成功！",
             content: `<h3 style="color:red">今日已签退！</h3><br /><p>当前状态：已签退</p>`,
           });
-          await setTimeout(async () => {
-            await browser.close(); //关闭浏览器结束、
-          }, 30000);
-          global.checkOutJob?.cancel();
-          global.checkInJob?.cancel();
-          global.checkOutRemindJob?.cancel();
-          clearInterval(global.checkOutRemindTimer);
-          clearInterval(global.checkInRemindTimer);
-          clearInterval(global.reloadTimer);
-          setTimeout(() => {
-            process.exit(main);
-          }, 3000);
         }
       }
       if (
@@ -218,12 +208,12 @@ const main = async () => {
             checkInTime + 27000000 + (LUNCH_TIME || 1) * 3600000
           );
           let randomWorkTime = 0;
-          // while (randomWorkTime < 8.5) {
-          randomWorkTime = (Math.random() * -1 + WORING_TIME,
-          +1 + 0.75).toFixed(2);
-          // }
-          let expectCheckOutTime = +dayjs(
-            checkInTime + parseInt(randomWorkTime * 3600000)
+          while (randomWorkTime < 8.5) {
+            randomWorkTime = (Math.random() * -1 + WORING_TIME,
+            +1 + 0.75).toFixed(2);
+          }
+          let expectCheckOutTime = reviseTime(
+            +dayjs(checkInTime + parseInt(randomWorkTime * 3600000))
           );
 
           if (
@@ -298,7 +288,7 @@ const main = async () => {
           }
           // 容错处理，如果启动脚本时间已经超过打卡时间，直接签退
           if (reviseTime(+dayjs()) > +expectCheckOutTime) {
-            console.log("已预计签退时间，直接调用签退函数！");
+            console.log("已超过预计签退时间，直接调用签退函数！");
             global.checkOutJob?.cancel();
             clockIn();
           }
