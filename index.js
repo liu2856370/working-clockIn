@@ -132,7 +132,12 @@ const main = async () => {
         response._url ==
         "https://www.eteams.cn/attendapp/timecard/queryAttendStatus.json"
       ) {
-        const res = await response?.json().catch((err) => {});
+        let res;
+        try {
+          res = await response?.json();
+        } catch (error) {
+          return;
+        }
         let checkInTime =
           reviseTime(res?.beginDate) || +dayjs().hour(9).minute(55);
         // 如果没有签到，每30秒发送一次提醒
