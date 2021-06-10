@@ -339,9 +339,6 @@ const main = async () => {
   }
 };
 const start = async () => {
-    setTimeout(() => {}, 10000000);
-console.log(process.env);
-
 
   // 10点到17点之间不运行
   if (
