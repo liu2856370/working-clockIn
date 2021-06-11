@@ -3,10 +3,11 @@ var axios = require("axios");
 var schedule = require("node-schedule");
 var send = require("./utils/send.js");
 const dayjs = require("dayjs");
-const { CHECK_IN_CONFIG, CHECK_OUT_CONFIG, CLOCK_IN_IP, WORING_TIME } = require("./config.js");
 const USER_NAME = process.env.USER_NAME;
 const PASS_WORD = process.env.PASS_WORD;
-
+require("jsonc-require");
+const config = require("./config.jsonc");
+const { CHECK_IN_CONFIG, CHECK_OUT_CONFIG, CLOCK_IN_IP, WORING_TIME } = config;
 const LUNCH_TIME = 1; // 午休时间，默认1小时，无需修改
 global.checkOutJob = null; // 签退任务
 global.checkInJob = null; // 签到任务
@@ -89,7 +90,7 @@ const main = async () => {
         request.continue({
           headers: {
             ...request._headers,
-            "X-Forwarded-For": "223.70.159.3" || CLOCK_IN_IP,
+            "X-Forwarded-For": CLOCK_IN_IP || "223.70.159.3",
           },
         });
         return;
