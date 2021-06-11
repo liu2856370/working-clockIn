@@ -12,10 +12,9 @@
     "axios": "^0.21.1",
     "dayjs": "^1.10.5",
     "express": "^4.17.1",
-    "fs": "0.0.1-security",
+    "jsonc-require": "^1.0.1",
     "node-schedule": "^2.0.0",
     "nodemon": "^2.0.7",
-    "os": "^0.1.1",
     "path": "^0.12.7",
     "puppeteer": "^9.1.1",
     "request": "^2.88.2"
